@@ -41,6 +41,14 @@ typedef enum e_toktype
 	DOUBLE_Q
 }	t_toktype;
 
+// --- EXPORT MODE ENUM --- //
+typedef enum e_export_mode
+{
+	EXP_MARK = 0,
+	EXP_SET = 1,
+	EXP_APPEND = 2
+} t_export_mode;
+
 
 // --- COMMAND TYPE --//
 

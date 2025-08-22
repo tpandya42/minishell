@@ -49,7 +49,7 @@
 # include "exec.h"
 # include "builtin.h"
 # include "expansion.h"
-
+# include "export.h"
 // -----------------------------------------//
 //                PROTOTYPES                //
 // -----------------------------------------//

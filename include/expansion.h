@@ -2,8 +2,7 @@
 # define EXPANSION_H
 # include "minishell.h"
 
-void	expand(t_token *token, int last_exit);
-
+void	expand(t_token *token, char **envp_cpy, int last_exit);
 
 
 #endif
