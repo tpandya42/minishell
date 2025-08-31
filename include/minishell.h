@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rococo <rococo@student.42.fr>              +#+  +:+       +#+        */
+/*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/21 10:47:36 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/15 11:48:45 by rococo           ###   ########.fr       */
+/*   Updated: 2025/08/22 18:34:48 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,9 +47,11 @@
 # include "parser.h"
 # include "prexec.h"
 # include "exec.h"
+# include "redir.h"
 # include "builtin.h"
 # include "expansion.h"
 # include "export.h"
+# include "unset.h"
 // -----------------------------------------//
 //                PROTOTYPES                //
 // -----------------------------------------//

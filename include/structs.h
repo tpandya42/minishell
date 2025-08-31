@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/20 09:56:45 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/21 08:17:27 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/23 07:30:20 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,8 @@ typedef enum e_redir_type
 	RED_IN,
 	RED_OUT,
 	RED_APPEND,
-	RED_HERE_DOC
+	RED_HERE_DOC,
+	RED_UNKNOW
 }t_redir_type;
 
 // -----------------------------------------//
@@ -136,9 +137,20 @@ typedef struct s_program
 	char	**envp_cpy;
 	t_node	*root;
 	t_token	*token_list;
-	int		fd_in_orig;//fix pipes fd
-	int		fd_out_orig;//fix pipes fd
+	int		fd_in_orig;//at the end of redir
+	int		fd_out_orig;//at the end of redir
 	int		last_exit_status;
 }t_program;
+
+// --- STRUCT FOR REDIR --- //
+
+typedef struct s_redir
+{
+	enum e_redir_type	type;
+	char				*target;//filename for < > >> and delimiter for <<
+	int					fd;//associated with the redir
+	struct s_redir		*next;//linkedlist
+}	t_redir;
+
 
 #endif

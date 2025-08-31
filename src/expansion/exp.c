@@ -41,7 +41,7 @@ static char *status_exp(char c, int last_exit)
     return res;
 }
 
-static char *expand_token_text(char *txt, char **envp_cpy, int last_exit)
+char *expand_token_text(char *txt, char **envp_cpy, int last_exit)
 {
     char *result;
     char *pos;

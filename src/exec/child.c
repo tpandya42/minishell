@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 12:07:44 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/06 11:50:12 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/23 12:08:58 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,17 +28,16 @@
 // void	child_process(t_node *node)
 void child_process(t_program *program, t_node *node)
 {
-	// t_fd_dup		dup;
 	t_cmd_data		*cmd;
 	t_builtin_type	builtin_id;
 	int				status;
 
 	cmd = &node->u_data.cmd;
-	// if (setup_redir(cmd->fd_in, cmd->fd_out, &dup) != 0)//only when actual redirectio is needed or in pipes
-	// 	exit(1);
+	if (cmd->redir)
+		setup_redir(cmd);
 	if (is_builtin(cmd->argv[0]))//might change if declared $ARG in cmd line
 	{
-		status = execute_builtin(program, node);
+		status = execute_builtin(program, node, true);
 		exit(status);//some exit status
 	}
 	else

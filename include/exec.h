@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/21 11:02:07 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/21 08:22:49 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/22 11:30:42 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 //                PROTOTYPES                //
 // -----------------------------------------//
 
-int		process_node(t_program *program);
+// int		process_node(t_program *program);
 
 // --- ABSOLUTE PATH --- //
 
@@ -28,7 +28,7 @@ char	*find_path(char *argv);
 
 // --- EXECUTION --- //
 //Parent cmd node
-int		fork_handle(pid_t *token_headid, t_node *node, int i_cmd, int nb_cmd);
+// int		fork_handle(pid_t *token_headid, t_node *node, int i_cmd, int nb_cmd);
 // int		setup_redir(int fd_in, int fd_out, t_fd_dup *dup);
 int		execution(t_program *program, t_node *node, bool is_pipe_child);
 int		handle_cmd_exec(t_program *program, t_node *node, bool is_pipe_child);

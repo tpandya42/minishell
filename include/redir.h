@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lexer.h                                            :+:      :+:    :+:   */
+/*   redir.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/07/15 08:36:45 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/23 11:38:58 by albetanc         ###   ########.fr       */
+/*   Created: 2025/08/22 11:31:14 by albetanc          #+#    #+#             */
+/*   Updated: 2025/08/23 07:12:04 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef LEXER_H
-# define LEXER_H
+#ifndef REDIR_H
+# define REDIR_H
 
 # include "minishell.h"
 
@@ -19,12 +19,12 @@
 //                PROTOTYPES                //
 // -----------------------------------------//
 
-t_token			*lex(char *s, char delim);
-enum e_toktype	token_type(char *s);
-char			*consume_whitespace(char *head_token);
-int				is_operator_char(char c);
-t_token			*lex_quoted(char *s, char quote);
-t_token			*lex_unquoted(char *s);
-t_token			*extract_token(char *s, size_t size);
+t_redir_type	map_type(t_toktype token_type);
+t_redir			*create_redir_node(char *target, enum e_redir_type type);
+void			add_redir(t_redir **list, t_redir *new_redir);
+int				open_redir_filename(t_redir *redir);
+int				process_redir(t_cmd_data *cmd);
+void			restore_std(t_program *program);
+int				setup_redir(t_cmd_data *cmd);
 
 #endif

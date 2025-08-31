@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/21 11:10:46 by albetanc          #+#    #+#             */
-/*   Updated: 2025/07/21 11:38:32 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/23 11:15:04 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,5 +22,6 @@
 
 // void	pre_execution(t_node *node, char **envp);
 void	pre_execution(t_program *program, t_node *node);
+void	apply_redir(t_program *program, t_node *node);
 
 #endif

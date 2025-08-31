@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 17:54:38 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/19 16:03:26 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/22 18:31:38 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ typedef enum e_builtin_type
 // -----------------------------------------//
 
 int		is_builtin(const char *cmd_name);
-int		execute_builtin(t_program *program, t_node *node);
+int		execute_builtin(t_program *program, t_node *node, bool is_pipe_child);
 char	*find_env_value(char **envp, const char *key);
 void	update_env_var(t_program *program, const char *key, const char *value);
 

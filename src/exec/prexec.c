@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/16 08:41:11 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/20 13:57:28 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/23 11:14:55 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,18 @@ char	**token_to_argv(t_token *token)
 	return (argv);
 }
 
+void	tokens_to_argv(t_program *program, t_node *node)
+{
+	node->u_data.cmd.argv = token_to_argv(node->u_data.cmd.tokens);
+	if (!node->u_data.cmd.argv)
+	{
+		perror("Failed to create token args");//check msg
+		cleanup_program(program);
+		exit(EXIT_FAILURE);
+	}
+}
+
+
 void	pre_execution(t_program *program, t_node *node)
 {
 	if (!node)
@@ -124,16 +136,11 @@ void	pre_execution(t_program *program, t_node *node)
 	}
 	else if (node->type == COMMAND)
 	{
-		node->u_data.cmd.argv = token_to_argv(node->u_data.cmd.tokens);
-		if (!node->u_data.cmd.argv)
-		{
-			perror("Failed to create token args");//check msg
-			cleanup_program(program);
-			exit(EXIT_FAILURE);
-		}
+		tokens_to_argv(program, node);
 		node->u_data.cmd.env = program->envp;
 		node->u_data.cmd.fd_in = STDIN_FILENO;
 		node->u_data.cmd.fd_out = STDOUT_FILENO;
+		apply_redir(program, node);
 		if (node->u_data.cmd.argv[0] && is_builtin(node->u_data.cmd.argv[0]))
 			node->u_data.cmd.cmd_type = BUILTIN;
 		else

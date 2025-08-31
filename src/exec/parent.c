@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/08 16:15:44 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/11 14:13:21 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/23 07:45:14 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ int	exec_cmd_nopipe(t_program *program, t_node *node)
 	pid = fork();
 	if (pid == -1)
 	{
-		perror(BOLD RED "Fork failed for top-level command" RESET);
+		perror("Fork failedcmd no pipe");
 		return (1);
 	}
 	else if (pid == 0)//child
@@ -43,9 +43,10 @@ int	exec_cmd_nopipe(t_program *program, t_node *node)
 		child_process(program, node);
 		exit(EXIT_FAILURE);
 	}
-	else // Parent process
+	else
 	{
 		waitpid(pid, &child_status, 0);
+		restore_std(program); 
 		if (WIFEXITED(child_status))
 			return (WEXITSTATUS(child_status));
 		return (1); // Default error if not exited normally check if is handle later

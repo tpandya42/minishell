@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/04 12:59:38 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/20 15:50:12 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/23 12:01:14 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,5 +101,7 @@ int	execute_pipeline(t_program *program, t_node *node)
 		return (1);
 	}
 	close_fd(&pipefd[0]);
-	return (wait_children(pids[0], pids[1], &status));
+	status = wait_children(pids[0], pids[1], &status);
+	restore_std(program);
+	return (status);
 }
