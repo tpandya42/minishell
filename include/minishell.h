@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/21 10:47:36 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/22 18:34:48 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/29 09:52:44 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,10 @@
 # include <sys/wait.h>
 # include <readline/readline.h>
 # include <readline/history.h>
+# include <signal.h>
+# include <sys/ioctl.h>
+# include <termios.h>
+# include <stdbool.h>
 
 // -----------------------------------------//
 //             MODULE HEADERS               //
@@ -43,6 +47,8 @@
 # include "../libft/libft.h"
 # include "structs.h"
 # include "colors.h"
+# include "debug.h"
+# include "cleanup_fd.h"
 # include "lexer.h"
 # include "parser.h"
 # include "prexec.h"
@@ -52,6 +58,9 @@
 # include "expansion.h"
 # include "export.h"
 # include "unset.h"
+# include "signall.h"
+# include "heredoc.h"
+
 // -----------------------------------------//
 //                PROTOTYPES                //
 // -----------------------------------------//
@@ -67,4 +76,6 @@ void	free_node(t_node *node);
 void	free_token(t_token *token);
 void	free_ast_tokens(t_program *program);
 
+// ---PRINT AST TREE --- //
+void	print_ast(t_node *node, int level);
 #endif

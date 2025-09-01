@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 13:33:32 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/23 07:30:37 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/28 17:11:34 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,8 @@ t_redir_type	map_type(t_toktype token_type)
 	return (RED_UNKNOW);
 }
 
-t_redir	*create_redir_node(char *target, enum e_redir_type type)
+// Add quoted argument
+t_redir	*create_redir_node(char *target, enum e_redir_type type, bool quoted)
 {
 	t_redir	*new_redir;
 
@@ -51,9 +52,11 @@ t_redir	*create_redir_node(char *target, enum e_redir_type type)
 	new_redir->type = type;
 	new_redir->fd = -1;//init with a non valid fd
 	new_redir->next = NULL;
+	new_redir->quoted = quoted;
 	return (new_redir);
 }
 
+// No change needed here, just ensure all create_redir_node calls use quoted argument
 void	add_redir(t_redir **list, t_redir *new_redir)
 {
 	t_redir	*tmp;

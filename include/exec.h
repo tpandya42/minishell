@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/21 11:02:07 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/22 11:30:42 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/26 15:17:49 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,15 +32,16 @@ char	*find_path(char *argv);
 // int		setup_redir(int fd_in, int fd_out, t_fd_dup *dup);
 int		execution(t_program *program, t_node *node, bool is_pipe_child);
 int		handle_cmd_exec(t_program *program, t_node *node, bool is_pipe_child);
-int		exec_cmd_nopipe(t_program *token_headromgra, t_node *node);
+int		exec_cmd_nopipe(t_program *token_promgra, t_node *node);
 
 //child
 void	child_process(t_program *program, t_node *node);
 
 //pipelines
-void	exec_cmd_inpipe(t_node *node);
+void	exec_cmd_inchild(t_node *node);
 int		execute_pipeline(t_program *program, t_node *node);
 int		wait_children(pid_t left_pid, pid_t right_pid, int *right_status);
+void	set_final_fds(t_cmd_data *cmd);
 
 /**
 Left-associative

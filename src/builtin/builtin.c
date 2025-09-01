@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/31 18:10:28 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/22 18:35:10 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/26 14:42:37 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 
 int	is_builtin(const char *cmd_name)
 {
-	if (!cmd_name)
-		return (BUILTIN_NONE);
 	if (ft_strcmp(cmd_name, "echo") == 0)
 		return (BUILTIN_ECHO);
 	if (ft_strcmp(cmd_name, "cd") == 0)
@@ -39,16 +37,16 @@ int	execute_builtin(t_program *program, t_node *node, bool is_pipe_child)
 	t_builtin_type	e_builtin_type;
 	int				status;
 
-	setup_redir(cmd);
 	cmd = &node->u_data.cmd;
 	status = 0;
+
 	e_builtin_type = is_builtin(cmd->argv[0]);
 	if (e_builtin_type == BUILTIN_ECHO)
 		status = my_echo(program, node);
 	else if (e_builtin_type == BUILTIN_ENV)
 		status = my_env(program, node);
 	else if (e_builtin_type == BUILTIN_CD)
-		status = my_cd(program, node); 
+		status = my_cd(program, node);
 	else if (e_builtin_type == BUILTIN_PWD)
 		status = my_pwd(program, node);
 	else if (e_builtin_type == BUILTIN_EXPORT)
@@ -57,12 +55,10 @@ int	execute_builtin(t_program *program, t_node *node, bool is_pipe_child)
 		status = my_unset(program, node);
 	else if (e_builtin_type == BUILTIN_EXIT)
 		my_exit(program, node);
-	else
+	else 
 	{
 		fprintf(stderr, BOLD RED "Error: unknown builtin\n" RESET);
 		status = 1;
 	}
-	if (!is_pipe_child)
-		restore_std(program);
 	return (status);
 }

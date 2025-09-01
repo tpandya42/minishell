@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 10:27:01 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/23 11:14:59 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/25 10:56:46 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,26 +117,25 @@ int	clean_redir_target(t_redir *redir, char **envp_cpy, int last_exit)
 	return (0);
 }
 
-void	apply_redir(t_program *program, t_node *node)
+void apply_redir(t_program *program, t_node *node)
 {
-	t_redir	*redir;
+    t_redir *redir = node->u_data.cmd.redir;
 
-	redir = node->u_data.cmd.redir;
-	while (redir)
-	{
-		if (clean_redir_target(redir, program->envp_cpy,
-			program ->last_exit_status) != 0)
-		{
-			cleanup_program(program);
-			exit(EXIT_FAILURE);
-		}
-		redir = redir->next;
-	}
-	if (process_redir(&node->u_data.cmd) != 0)
-	{
-		fprintf(stderr, BOLD RED "Redir error in preexec '%s'\n" RESET,
-			node->u_data.cmd.argv[0]);
-		cleanup_program(program);
-		exit(EXIT_FAILURE);
-	}
+    while (redir)
+    {
+        if (redir->type == RED_HERE_DOC)
+        {
+            /* ensure proper delimiter + hd_expand flag */
+            heredoc_normalize_delimiter(redir);
+        }
+        else
+        {
+            if (clean_redir_target(redir, program->envp_cpy, program->last_exit_status) != 0)
+            {
+                cleanup_program(program);
+                exit(EXIT_FAILURE);
+            }
+        }
+        redir = redir->next;
+    }
 }

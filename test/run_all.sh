@@ -20,7 +20,7 @@ run_test() {
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Script list that we want to run in the main
-# run_test "$SCRIPT_DIR/lexer_test.sh"
-# run_test "$SCRIPT_DIR/parser_test.sh"
+# run_test "$SCRIPT_DIR/test_redir.sh"
+# run_test "$SCRIPT_DIR/test_builtin.sh"
 # run_test "$SCRIPT_DIR/execution_test.sh"
 # Add more test scripts here

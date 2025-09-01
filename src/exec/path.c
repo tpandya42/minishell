@@ -87,12 +87,20 @@ static char	*free_prev_dir(char **dir, int i)
 
 // Finds the full path of a command by searching directories
 //in PATH.
-char	*find_path(char *argv)
+char    *find_path(char *argv)
 {
-	char	*file_path;
-	char	**dir;
-	char	*final_path;
-	int		i;
+	char    *file_path;
+	char    **dir;
+	char    *final_path;
+	int     i;
+
+	// If argv contains a '/', treat as direct/relative path
+	if (argv && ft_strchr(argv, '/')) {
+		if (access(argv, X_OK) == 0)
+			return ft_strdup(argv);
+		else
+			return NULL;
+	}
 
 	dir = get_path();
 	if (!dir)

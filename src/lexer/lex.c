@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/15 08:57:29 by albetanc          #+#    #+#             */
-/*   Updated: 2025/07/21 12:05:40 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/28 15:50:13 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,95 +137,123 @@ static t_token *join_tokens(t_token *a, t_token *b)
 	size_t len_b = strlen(b->txt);
 
 	char *joined = malloc(len_a + len_b + 1);
-	if (!joined) return a; // fallback, leak risk if malloc fails
-
+	if (!joined) 
+	{
+		// malloc_error();//check
+		free_token(b);//NEW
+		return (a); // leak risk if malloc fails
+	}
 	strcpy(joined, a->txt);
 	strcat(joined, b->txt);
 
 	free(a->txt);
 	a->txt = joined;
 
-	a->next = b->next;
-	free(b->txt);
-	free(b);
+    // preserve the rest of b's chain
+    t_token *b_next = b->next;
+    free(b->txt);
+    free(b);
 
+    a->next = b_next;
 	return a;
 }
 
 
-t_token	*lex_quoted(char *s, char quote)
+t_token *lex_quoted(char *s, char quote)
 {
-	t_token	*token;
-	t_token	*next;
-	char	*start;
-	char	*end;
-	char	*rest;
+    t_token *token;
+    t_token *next;
+    char *start = s;
+    char *end = s;
+    char *rest;
 
-	start = s;
-	end = s;
-	while (*end && *end != quote)
-		end++;
-	if (!*end)
-	{
-		perror("Unclosed quote");
-		return (NULL);
-	}
-	token = extract_token(start, end - start);
-	if (!token)
-		return (NULL);
-	if (quote == '\'')
-		token->type = SINGLE_Q;
-	else
-		token->type = DOUBLE_Q;
-	rest = end + 1;
-	if (*rest && !ft_isspace(*rest) && !is_operator_char(*rest))
-	{
-		if (*rest == '\'' || *rest == '"')
-			next = lex_quoted(rest + 1, *rest);
-		else
-			next = lex_unquoted(rest);
+    while (*end && *end != quote)
+    {
+        if (quote == '"' && *end == '\\' && (*(end + 1) == '"' || *(end + 1) == '$' || *(end + 1) == '\\'))
+            end += 2; // skip escape in double quotes
+        else
+            end++;
+    }
+
+    if (!*end)
+    {
+        perror("Unclosed quote");
+        return NULL;
+    }
+
+    token = extract_token(start, end - start);
+    if (!token)
+        return NULL;
+
+    token->type = (quote == '\'') ? SINGLE_Q : DOUBLE_Q;
+
+    rest = end + 1;
+
+    // Check for adjacent token without whitespace
+    if (*rest && !ft_isspace(*rest) && !is_operator_char(*rest))
+    {
+        if (*rest == '\'' || *rest == '"')
+            next = lex_quoted(rest + 1, *rest);
+        else
+            next = lex_unquoted(rest);
+
 		if (!next)
+		{
+			free_token(token);//new
 			return (NULL);
-		token = join_tokens(token, next);
-	}
-	else
-		token->next = lex(consume_whitespace(rest), ' ');
-	return (token);
+		}
+
+        token = join_tokens(token, next);
+    }
+    else
+        token->next = lex(consume_whitespace(rest), ' ');
+
+    return token;
 }
 
-t_token	*lex_unquoted(char *s)
+t_token *lex_unquoted(char *s)
 {
-	char	*start;
-	char	*end;
-	char	*rest;
-	t_token	*token;
-	t_token	*next;
+    char *start = s;
+    char *end = s;
+    char *rest;
+    t_token *token;
+    t_token *next;
 
-	start = s;
-	end = s;
-	while (*end && !(*end == ' ' || *end == '\t'
-				|| *end == '\'' || *end == '"'
-				|| is_operator_char(*end)))
-		end++;
-	token = extract_token(start, end - start);
-	if (!token)
-		return (NULL);
-	token->type = WORD;
-	rest = end;
-	if (*rest && !ft_isspace(*rest) && !is_operator_char(*rest))
-	{
-		if (*rest == '\'' || *rest == '"')
-			next = lex_quoted(rest + 1, *rest);
-		else
-			next = lex_unquoted(rest);
-		if (next)
-			token = join_tokens(token, next);
-		else
+    while (*end && !ft_isspace(*end) && !is_operator_char(*end) && *end != '\'' && *end != '"')
+    {
+        if (*end == '\\' && *(end + 1)) // handle escape
+            end += 2;
+        else
+            end++;
+    }
+
+    token = extract_token(start, end - start);
+    if (!token)
+        return NULL;
+
+    token->type = WORD;
+
+    rest = end;
+
+    // Check for adjacent token without whitespace
+    if (*rest && !ft_isspace(*rest) && !is_operator_char(*rest))
+    {
+        if (*rest == '\'' || *rest == '"')
+            next = lex_quoted(rest + 1, *rest);
+        else
+            next = lex_unquoted(rest);
+
+        if (!next)
+		{
+			free_token(token);//new
 			return (NULL);
-	}
-	else
-		token->next = lex(consume_whitespace(rest), ' ');
-	return (token);
+		}
+        token = join_tokens(token, next);
+    }
+    else
+        token->next = lex(consume_whitespace(rest), ' ');
+
+    return token;
 }
 
 t_token *lex(char *s, char delim)

@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 14:05:02 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/22 18:33:21 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/29 14:30:18 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@ char	*find_env_value(char **envp, const char *key)
 	int	i;
 	int	len;
 
-	fprintf(stderr, MAGENTA BOLD "MY PWD or CD is about to be run\n" RESET);
+	// fprintf(stderr, MAGENTA BOLD "MY PWD or CD is about to be run\n" RESET);
+	DEBUG_PRINT(MAGENTA BOLD "MY PWD or CD is about to be run\n" RESET);//DEBUG
 	if (!envp || !key)
 		return (NULL);
 	len = ft_strlen(key);

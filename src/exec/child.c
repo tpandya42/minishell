@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 12:07:44 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/23 12:08:58 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/26 15:32:08 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,24 +25,29 @@
 *
 *   @note v0: execute single external cmd: no pipes no builtins
 */
-// void	child_process(t_node *node)
-void child_process(t_program *program, t_node *node)
+void	child_process(t_program *program, t_node *node)
 {
 	t_cmd_data		*cmd;
-	t_builtin_type	builtin_id;
 	int				status;
 
 	cmd = &node->u_data.cmd;
-	if (cmd->redir)
-		setup_redir(cmd);
-	if (is_builtin(cmd->argv[0]))//might change if declared $ARG in cmd line
+	
+	// Debug output to track redirections
+	DEBUG_PRINT("\033[1;36m[DEBUG] child_process: fd_in=%d, fd_out=%d\033[0m\n", 
+		cmd->fd_in, cmd->fd_out);
+	
+	// Setup redirections here (already processed in handle_cmd_exec)
+	if (setup_redir(cmd) != 0)
+		exit(EXIT_FAILURE);
+	
+	if (is_builtin(cmd->argv[0]))
 	{
 		status = execute_builtin(program, node, true);
-		exit(status);//some exit status
+		exit(status);
 	}
 	else
 	{
-		exec_cmd_inpipe(node);//this was to execute only single external cmd
+		exec_cmd_inchild(node);//this was to execute only single external cmd
 		perror (BOLD RED "Exec/Builtin failed" RESET);
 		// cleanup_fd(node, node->type);// Only cleanup FDs opened by this child. CHECK IF W OTHERS
 		exit(EXIT_FAILURE);

@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 14:04:46 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/19 16:43:02 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/29 14:30:31 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,8 @@ int	my_cd(t_program *program, t_node *node)
 	bool	print_path;
 
 	print_path = false;
-	fprintf(stderr, MAGENTA BOLD "MY CD is about to be run\n" RESET);
+	// fprintf(stderr, MAGENTA BOLD "MY CD is about to be run\n" RESET);
+	DEBUG_PRINT(MAGENTA BOLD "MY CD is about to be run\n" RESET);//DEBUG
 	if (node->u_data.cmd.argv[1] 
 		&& ft_strcmp(node->u_data.cmd.argv[1], "-") == 0)
 		print_path = true;

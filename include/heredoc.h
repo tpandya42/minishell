@@ -1,9 +1,10 @@
 #ifndef HEREDOC_H
 #define HEREDOC_H
 
-#include "minishell.h"
-int process_heredoc(t_redir *redir, t_program *program);
+# include "minishell.h"
+int is_quoted(const char *s);
+char *strip_outer_quotes(const char *s);
+int	heredoc_prepare(t_redir *redir, char **envp_cpy, int last_exit);
+void	heredoc_normalize_delimiter(t_redir *redir);
 
-int	handle_heredocs(t_cmd_data *cmd, t_program *program);
-void free_heredocs(t_redir *redir);
 #endif

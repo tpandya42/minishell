@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/04 11:20:19 by albetanc          #+#    #+#             */
-/*   Updated: 2025/07/04 11:29:43 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/08/29 12:58:20 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 * YELLOW:    warnings/debug
 * BLUE:      info messages
 * MAGENTA:   Execution debug
-* CYAN:      Parsing and Tokenization Debug
+* CYAN:      FD, Parsing and Tokenization Debug
 */
 // --- Text colors --- //
 # define RED     "\033[31m"    
