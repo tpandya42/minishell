@@ -19,11 +19,9 @@ int	my_env(t_program *program, t_node *node)
 	int	i;
 
 	(void)node;
-	// fprintf(stderr, MAGENTA BOLD "MY ENV is about to be run\n" RESET);
-	DEBUG_PRINT(MAGENTA BOLD "MY ENV is about to be run\n" RESET);//DEBUG
 	if (!program->envp_cpy)
 	{
-		fprintf(stderr, BLUE "env: no environment variables found\n");
+		ft_putendl_fd("env: no environment variables found", STDERR_FILENO);
 		return (1);
 	}
 	   i = 0;

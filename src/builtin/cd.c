@@ -71,8 +71,6 @@ int	my_cd(t_program *program, t_node *node)
 	bool	print_path;
 
 	print_path = false;
-	// fprintf(stderr, MAGENTA BOLD "MY CD is about to be run\n" RESET);
-	DEBUG_PRINT(MAGENTA BOLD "MY CD is about to be run\n" RESET);//DEBUG
 	if (node->u_data.cmd.argv[1] 
 		&& ft_strcmp(node->u_data.cmd.argv[1], "-") == 0)
 		print_path = true;

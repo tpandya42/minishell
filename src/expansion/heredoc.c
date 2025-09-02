@@ -62,8 +62,6 @@ int heredoc_prepare(t_redir *redir, char **envp, int last_exit)
 
     // Always normalize delimiter before heredoc input
     heredoc_normalize_delimiter(redir);
-    // fprintf(stderr, "[DEBUG] heredoc_prepare: delimiter='%s', hd_expand=%d\n", redir->target, redir->hd_expand);
-    DEBUG_PRINT("[DEBUG] heredoc_prepare: delimiter='%s', hd_expand=%d\n", redir->target, redir->hd_expand);//debug
     redir->fd = pipefd[0]; // read end for child/STDIN
 
     set_signal_heredoc(); // handle Ctrl-C in heredoc
@@ -83,16 +81,10 @@ int heredoc_prepare(t_redir *redir, char **envp, int last_exit)
         char *to_write;
         if (redir->hd_expand)
         {
-            // Debug: print expansion
-            // fprintf(stderr, "[DEBUG] heredoc_prepare: expanding line '%s'\n", line);
-            DEBUG_PRINT("[DEBUG] heredoc_prepare: expanding line '%s'\n", line);//DEBUG
             to_write = expand_token_text(line, envp, last_exit);
         }
         else
         {
-            // Debug: print no expansion
-            // fprintf(stderr, "[DEBUG] heredoc_prepare: no expansion for line '%s'\n", line);
-            DEBUG_PRINT("[DEBUG] heredoc_prepare: no expansion for line '%s'\n", line);//DEBUG
             to_write = ft_strdup(line);
         }
 

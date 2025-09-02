@@ -50,7 +50,6 @@ t_node	*parse_command(t_token *token)
 	{
 		free_token(token);//new
 		free_node(node);//changed from free to free_node
-		DEBUG_ERROR("[ERROR] parse_command: failed to process tokens\n");//DEBUG
 		return (NULL);
 	}
 	return (node);
@@ -97,10 +96,9 @@ static t_token *find_lowest_operator(t_token *token)
 t_node *parse(t_token *token_list)
 {
     if (!token_list)
-    {//debug
-        DEBUG_PRINT("[DEBUG] parse: token_list is NULL\n");//debug
+    {
         return NULL;
-    }//debug
+    }
 
     // 1. Find operator of lowest precedence (leftmost for left-associativity)
     t_token *op_token = find_lowest_operator(token_list);
@@ -133,7 +131,6 @@ t_node *parse(t_token *token_list)
     {
         free_node(left);
         free_node(right);
-        DEBUG_ERROR("[ERROR] parse: failed to parse left or right sub-tree\n");//debug
         return NULL;
     }
     // 5. Create operator node

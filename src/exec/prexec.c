@@ -135,8 +135,6 @@ char	**token_to_argv(t_token *token)
 
 void	setup_cmd_arg(t_program *program, t_node *node)
 {
-	// fprintf(stderr, CYAN "Setting up command arguments...\n" RESET);//debug
-	DEBUG_PRINT(CYAN "Setting up command arguments...\n" RESET);//debug
 	node->u_data.cmd.argv = token_to_argv(node->u_data.cmd.tokens);
 	if (!node->u_data.cmd.argv)
 	{
@@ -144,7 +142,6 @@ void	setup_cmd_arg(t_program *program, t_node *node)
 		cleanup_program(program);
 		exit(EXIT_FAILURE);
 	}
-	DEBUG_PRINT(GREEN "Command arguments successfully created.\n" RESET);//debug
 }
 
 
@@ -159,8 +156,6 @@ void	pre_execution(t_program *program, t_node *node)
 	}
 	else if (node->type == COMMAND)
 	{
-		DEBUG_PRINT(stderr, YELLOW BOLD "Pre-executing COMMAND node.\n" RESET); //debug
-		// fprintf(stderr, YELLOW BOLD "Pre-executing COMMAND node.\n" RESET); //debug
 		setup_cmd_arg(program, node);
 		apply_redir(program, node);
 		node->u_data.cmd.env = program->envp;

@@ -91,24 +91,22 @@ int	cleanup_fd(t_node *node, t_nodetype type)
 int	cleanup_cmd_node(t_node *node)
 {
 	t_cmd_data	*cmd;
-	int	tmp_fd_in;//only for debug
-	int	tmp_fd_out;//only for debug
+	int	tmp_fd_in;
+	int	tmp_fd_out;
 
-	tmp_fd_in = node->u_data.cmd.fd_in;//ONLY FOR DEBUG
-	tmp_fd_out = node->u_data.cmd.fd_out;//ONLY FOR DEBUG
+	tmp_fd_in = node->u_data.cmd.fd_in;
+	tmp_fd_out = node->u_data.cmd.fd_out;
 	if (!node || node->type != COMMAND)
 		return (-1);
 	cmd = &node->u_data.cmd;
 	if (cmd->fd_in != STDIN_FILENO)
-	{//debug
+	{
 		close_fd(&node->u_data.cmd.fd_in);
-		DEBUG_PRINT(CYAN "[DEBUG_FD] cleanup node- Closed cmd.fd_in -> %d\n", tmp_fd_in);//debug
-	}//debug
+	}
 	if (cmd->fd_out != STDOUT_FILENO)
-	{//debug
+	{
 		close_fd(&node->u_data.cmd.fd_out);
-		DEBUG_PRINT(CYAN "[DEBUG_FD] cleaup node - Closed cmd.fd_out -> %d\n", tmp_fd_out);//debug
-	}//debug
+	}
 	return (0);
 }
 
@@ -142,8 +140,6 @@ void	free_ast_tokens(t_program *program)
 		free_node(program->root);
 		program->root = NULL;
 	}
-	// fprintf(stderr, BOLD MAGENTA "Command processed and cleaned up\n" RESET); //TEST
-	DEBUG_PRINT(BOLD MAGENTA "Command processed and cleaned up\n" RESET); //TEST
 }
 
 //To centralized cleanup at the end of the program
@@ -179,14 +175,12 @@ void cleanup_program(t_program *program)
         program->envp_cpy = NULL;
     }
 	if (program->fd_in_orig != -1)
-	{//DEBUG
+	{
 		close_fd(&program->fd_in_orig);
-		DEBUG_PRINT(CYAN "[DEBUG_FD] Closed fd_in_orig in program-> %d\n" RESET, program->fd_in_orig);//DEBUG
-	}//DEBUG
-	if (program->fd_out_orig != -1)//new
-	{//DEBUG
-		close_fd(&program->fd_out_orig);//new
-		DEBUG_PRINT(CYAN "[DEBUG_FD] Closed fd_out_orig in program-> %d\n" RESET, program->fd_out_orig);//DEBUG
-	}//DEBUG
+	}
+	if (program->fd_out_orig != -1)
+	{
+		close_fd(&program->fd_out_orig);
+	}
 }
 

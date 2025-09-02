@@ -33,11 +33,9 @@ int my_echo(t_program *program, t_node *node)
 	int fd_out;
 
 	(void) program;
-	DEBUG_PRINT(MAGENTA BOLD "MY ECHO is about to be run\n" RESET);
 	
 	// Make sure we're using the correct file descriptor
 	fd_out = node->u_data.cmd.fd_out;
-	fprintf(stderr, "DEBUG: Echo using fd_out=%d\n", fd_out);
 	
 	i = 1; // starts after command name
 	new_line = 1;

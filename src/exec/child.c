@@ -32,10 +32,6 @@ void	child_process(t_program *program, t_node *node)
 
 	cmd = &node->u_data.cmd;
 	
-	// Debug output to track redirections
-	DEBUG_PRINT("\033[1;36m[DEBUG] child_process: fd_in=%d, fd_out=%d\033[0m\n", 
-		cmd->fd_in, cmd->fd_out);
-	
 	// Setup redirections here (already processed in handle_cmd_exec)
 	if (setup_redir(cmd) != 0)
 		exit(EXIT_FAILURE);

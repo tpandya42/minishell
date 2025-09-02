@@ -21,7 +21,6 @@ t_node	*token_parser_input(char *line, t_token **token_out, t_program *program)
 	token_list = lex(line, ' ');
 	if (!token_list)
 	{
-		fprintf(stderr, BOLD RED "Lexing failed or empty imput\n" RESET);
 		*token_out = NULL;
 		return (NULL);
 	}
@@ -30,7 +29,6 @@ t_node	*token_parser_input(char *line, t_token **token_out, t_program *program)
 	root = parse(parser_tokens);
 	if (!root)
 	{
-		fprintf(stderr, RED BOLD "Parsing failed\n" RESET);
 		free_token(token_list);
 		*token_out = NULL;
 		return (NULL);
@@ -57,11 +55,8 @@ static void	process_cmdline(t_program *program, char *line)
 	free(line);
 	if (!program->root)
 	{
-		fprintf(stderr, RED "Parsing failed\n" RESET);
 		return ;
 	}
-	DEBUG_PRINT(stderr, BOLD MAGENTA "AST built. stating pre-execution \n" RESET);//TEST
-	DEBUG_PRINT_AST(root);//test
 	pre_execution(program, root);
 	program->last_exit_status = execution(program, root, false);
 	free_ast_tokens(program);
@@ -89,7 +84,5 @@ int	main(int argc, char **argv, char **envp)
 		process_cmdline(&program, program.line);
 	}
 	cleanup_program(&program);
-	// fprintf(stderr, MAGENTA BOLD "last program status: %d\n" RESET, program.last_exit_status);//new TEST
-	DEBUG_PRINT(MAGENTA BOLD "last program status: %d\n" RESET, program.last_exit_status);//TEST
 	return (program.last_exit_status);
 }

@@ -20,7 +20,6 @@ int	my_pwd(t_program *program, t_node *node)
 	char	*cwd_path;
 
 	(void) node;
-	fprintf(stderr, MAGENTA BOLD "Executing 'pwd'\n" RESET);//new debug
 	cwd_path = getcwd(NULL, 0);
        if (cwd_path)
        {

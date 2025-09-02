@@ -17,8 +17,6 @@ char	*find_env_value(char **envp, const char *key)
 	int	i;
 	int	len;
 
-	// fprintf(stderr, MAGENTA BOLD "MY PWD or CD is about to be run\n" RESET);
-	DEBUG_PRINT(MAGENTA BOLD "MY PWD or CD is about to be run\n" RESET);//DEBUG
 	if (!envp || !key)
 		return (NULL);
 	len = ft_strlen(key);

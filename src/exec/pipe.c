@@ -20,7 +20,6 @@ pid_t	execute_left(t_program *program, t_node *left_node, int *pipefd)
 	pid_t	pid;
 
 	pid = fork();
-	fprintf(stderr, "DEBUG: LEFT command fork pid=%d\n", pid);
 	
 	if (pid == -1)
 	{
@@ -39,7 +38,6 @@ pid_t	execute_left(t_program *program, t_node *left_node, int *pipefd)
 			process_redir(&left_node->u_data.cmd, program);
 		
 		// Connect stdout to write end of pipe
-		fprintf(stderr, "DEBUG: Left command redirecting stdout to pipe fd=%d\n", pipefd[1]);
 		if (dup2(pipefd[1], STDOUT_FILENO) == -1)
 		{
 			perror("Error: dup2 failed for left cmd");
@@ -71,7 +69,6 @@ pid_t	execute_right(t_program *program, t_node *right_node, int *pipefd)
 	pid_t	pid;
 
 	pid = fork();
-	fprintf(stderr, "DEBUG: RIGHT command fork pid=%d\n", pid);
 	
 	if (pid == -1)
 	{
@@ -90,7 +87,6 @@ pid_t	execute_right(t_program *program, t_node *right_node, int *pipefd)
 			process_redir(&right_node->u_data.cmd, program);
 		
 		// Connect stdin to read end of pipe
-		fprintf(stderr, "DEBUG: Right command redirecting stdin from pipe fd=%d\n", pipefd[0]);
 		if (dup2(pipefd[0], STDIN_FILENO) == -1)
 		{
 			perror("Error: dup2 failed for right cmd");
@@ -182,8 +178,6 @@ int	execute_pipeline(t_program *program, t_node *node)
 		return (1);
 	}
 	
-	fprintf(stderr, "DEBUG: Created pipe: read_fd=%d, write_fd=%d\n", pipefd[0], pipefd[1]);
-	
 	// Execute left command (writes to pipe)
 	pids[0] = execute_left(program, node->u_data.op.left, pipefd);
 	if (pids[0] == -1)
@@ -215,8 +209,6 @@ int	execute_pipeline(t_program *program, t_node *node)
 		status = WEXITSTATUS(status);
 	else
 		status = 1;
-		
-	fprintf(stderr, "DEBUG: Both pipe processes completed with status %d\n", status);
 	
 	return (status);
 }

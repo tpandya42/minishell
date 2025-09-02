@@ -76,13 +76,9 @@ int	is_operator_str(const char *str)
 // connect pipes if there is no redir
 void	set_final_fds(t_cmd_data *cmd)
 {
-	fprintf(stderr, "DEBUG: set_final_fds - fd_in=%d, fd_out=%d, pipefd[0]=%d, pipefd[1]=%d\n", 
-		cmd->fd_in, cmd->fd_out, cmd->pipefd[0], cmd->pipefd[1]);
-
 	// Set up stdin from pipe if appropriate
 	if (cmd->fd_in == STDIN_FILENO && cmd->pipefd[0] >= 0)
 	{
-		fprintf(stderr, "DEBUG: Redirecting stdin from pipe fd=%d\n", cmd->pipefd[0]);
 		if (dup2(cmd->pipefd[0], STDIN_FILENO) == -1)
 		{
 			perror("Error: dup2 failed for pipe input");
@@ -93,7 +89,6 @@ void	set_final_fds(t_cmd_data *cmd)
 	else if (cmd->fd_in >= 0 && cmd->fd_in != STDIN_FILENO)
 	{
 		// Handle explicit input redirection
-		fprintf(stderr, "DEBUG: Redirecting stdin from redirection fd=%d\n", cmd->fd_in);
 		if (dup2(cmd->fd_in, STDIN_FILENO) == -1)
 		{
 			perror("Error: dup2 failed for input redirection");
@@ -105,7 +100,6 @@ void	set_final_fds(t_cmd_data *cmd)
 	// Set up stdout to pipe if appropriate
 	if (cmd->fd_out == STDOUT_FILENO && cmd->pipefd[1] >= 0)
 	{
-		fprintf(stderr, "DEBUG: Redirecting stdout to pipe fd=%d\n", cmd->pipefd[1]);
 		if (dup2(cmd->pipefd[1], STDOUT_FILENO) == -1)
 		{
 			perror("Error: dup2 failed for pipe output");
@@ -116,7 +110,6 @@ void	set_final_fds(t_cmd_data *cmd)
 	else if (cmd->fd_out >= 0 && cmd->fd_out != STDOUT_FILENO)
 	{
 		// Handle explicit output redirection
-		fprintf(stderr, "DEBUG: Redirecting stdout to redirection fd=%d\n", cmd->fd_out);
 		if (dup2(cmd->fd_out, STDOUT_FILENO) == -1)
 		{
 			perror("Error: dup2 failed for output redirection");
@@ -130,8 +123,6 @@ void	set_final_fds(t_cmd_data *cmd)
 		close_fd(&cmd->pipefd[0]);
 	if (cmd->pipefd[1] >= 0)
 		close_fd(&cmd->pipefd[1]);
-
-	fprintf(stderr, "DEBUG: File descriptors set up successfully\n");
 }
 
 // decides cmd execution
@@ -156,12 +147,9 @@ int	handle_cmd_exec(t_program *program, t_node *node, bool is_pipe_child)
 	}
 	if (is_pipe_child)
 	{
-		fprintf(stderr, "DEBUG: Executing pipe child command: %s\n", cmd_name);
-		
 		// Process redirections if there are any
 		if (node->u_data.cmd.redir)
 		{
-			fprintf(stderr, "DEBUG: Pipe child has redirections\n");
 			if (process_redir(&node->u_data.cmd, program) != 0)
 				exit(EXIT_FAILURE);
 		}
@@ -171,7 +159,6 @@ int	handle_cmd_exec(t_program *program, t_node *node, bool is_pipe_child)
 		
 		if (is_builtin(cmd_name))
 		{
-			fprintf(stderr, "DEBUG: Pipe child executing builtin: %s\n", cmd_name);
 			status = execute_builtin(program, node, true);
 			if (cmd_name_unquoted)
 			{
@@ -181,7 +168,6 @@ int	handle_cmd_exec(t_program *program, t_node *node, bool is_pipe_child)
 		}
 		else
 		{
-			fprintf(stderr, "DEBUG: Pipe child executing external command: %s\n", cmd_name);
 			// For external commands, update argv[0] to unquoted
 			if (cmd_name_unquoted)
 			{
@@ -201,10 +187,7 @@ int	handle_cmd_exec(t_program *program, t_node *node, bool is_pipe_child)
 			cmd = &node->u_data.cmd;
 			if (cmd->redir) 
 			{
-				fprintf(stderr, "DEBUG: Builtin with redirections\n");
 				if (process_redir(cmd, program) == 0) {
-					fprintf(stderr, "DEBUG: Redirection processed, setting up fd_in=%d, fd_out=%d\n", 
-						cmd->fd_in, cmd->fd_out);
 					setup_redir(cmd);
 				}
 			}
@@ -248,39 +231,25 @@ int	execution(t_program *program, t_node *node, bool is_pipe_child)
 {
 	int	status;
 
-	// fprintf(stderr, MAGENTA BOLD "About to dispatch a node execution\n" RESET);//test
-	DEBUG_PRINT(MAGENTA BOLD "About to dispatch a node execution\n" RESET);//debug
 	if (!node)
 	{
 		program->last_exit_status = 0;
-		// fprintf(stderr, MAGENTA BOLD "Last cmd updated: %d\n" RESET, program->last_exit_status);//test
-		DEBUG_PRINT(MAGENTA BOLD "Last cmd updated: %d\n" RESET, program->last_exit_status);//test
 		return (0);
 	}
 	if (node->type == COMMAND) 
 	{
-		// fprintf(stderr, MAGENTA BOLD "Executing a COMMAND node...\n" RESET); //debug
-		DEBUG_PRINT(MAGENTA BOLD "Executing a COMMAND node...\n" RESET); //debug
 		status = handle_cmd_exec(program, node, is_pipe_child);
-		// fprintf(stderr, MAGENTA BOLD "Will be a cmd\n" RESET);//test
-		DEBUG_PRINT(MAGENTA BOLD "Will be a cmd\n" RESET);//test
 	}
 	else if (node->type == OPERATOR)
 	{
-		// fprintf(stderr, MAGENTA BOLD "Executing an OPERATOR node...\n" RESET);//debug
-		DEBUG_PRINT(MAGENTA BOLD "Executing an OPERATOR node...\n" RESET);//debug
 		status = handle_operator(program, node, is_pipe_child);
-		// fprintf(stderr, MAGENTA BOLD "Will be a oprator\n" RESET);//test
-		DEBUG_PRINT(MAGENTA BOLD "Will be a oprator\n" RESET);//test
 	}
 	else
 	{
-		fprintf(stderr, BOLD RED "Error: unknow type node for execution\n" RESET);
+		fprintf(stderr, "Error: unknown node type for execution\n");
 		status = 1;
 	}
 	program->last_exit_status = status;
-	// fprintf(stderr, MAGENTA BOLD "Node execution finished with status: %d\n" RESET, status);//debug
-	DEBUG_PRINT(MAGENTA BOLD "Node execution finished with status: %d\n" RESET, status);//debug
 	return (status);
 }
 
