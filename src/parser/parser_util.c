@@ -85,6 +85,16 @@ int	split_cmd_arg(t_token **current, t_cmd_data *cmd_data)
 		fprintf(stderr, BOLD RED "Error: Redirection target missing or invalid.\n" RESET);//debug
 		return (1);
 	}
+	
+	// Validate that the next token isn't a redirection operator
+	if ((*current)->next->type == REDIR_IN || (*current)->next->type == REDIR_OUT ||
+		(*current)->next->type == APPEND || (*current)->next->type == HEREDOC)
+	{
+		fprintf(stderr, BOLD RED "Syntax error: Unexpected redirection operator '%s'\n" RESET, 
+			(*current)->next->txt);
+		return (1);
+	}
+	
 	bool quoted = ((*current)->next->type == SINGLE_Q || (*current)->next->type == DOUBLE_Q);
 	add_redir(&cmd_data->redir,
 		create_redir_node((*current)->next->txt, map_type((*current)->type), quoted));
@@ -158,19 +168,61 @@ int	process_cmd_tokens(t_token *token, t_cmd_data *cmd_data)
 {
     t_token *current;
     t_token *cmd_tokens;
+    bool has_command = false;
+    
     // Print enum values for debugging
-    // fprintf(stderr, "\033[1;36m[DEBUG] REDIR_IN=%d REDIR_OUT=%d APPEND=%d HEREDOC=%d\033[0m\n", REDIR_IN, REDIR_OUT, APPEND, HEREDOC);
     DEBUG_PRINT("\033[1;36m[DEBUG] REDIR_IN=%d REDIR_OUT=%d APPEND=%d HEREDOC=%d\033[0m\n", REDIR_IN, REDIR_OUT, APPEND, HEREDOC);//debug
+    
     // Debug print: list all tokens and their types
-    // fprintf(stderr, "\033[1;36m[DEBUG] process_cmd_tokens: tokens received:\033[0m\n");
     DEBUG_PRINT("\033[1;36m[DEBUG] process_cmd_tokens: tokens received:\033[0m\n");//debug
     current = token;
     while (current) {
-        // fprintf(stderr, "\033[1;36m  token: '%s' type: %d\033[0m\n", current->txt, current->type);
         DEBUG_PRINT("\033[1;36m  token: '%s' type: %d\033[0m\n", current->txt, current->type);//DEBUG
+        
+        // Check if this token is a command (not a redirection operator)
+        if (current->type == WORD || current->type == SINGLE_Q || current->type == DOUBLE_Q) {
+            // Check if the token looks like a redirection target but has redirection syntax in it
+            if (strchr(current->txt, '>') != NULL || strchr(current->txt, '<') != NULL) {
+                // If this token contains redirection characters and is not properly quoted
+                if (current->type == WORD) {
+                    fprintf(stderr, BOLD RED "Syntax error: Invalid token '%s' contains redirection characters\n" RESET, 
+                        current->txt);
+                    return (1);
+                }
+            }
+            has_command = true;
+        }
+        
         current = current->next;
     }
-    // Reset current for actual processing
+    
+    // First pass: validate all redirection operators have proper targets
+    t_token *validate = token;
+    while (validate)
+    {
+        if (validate->type == REDIR_IN || validate->type == REDIR_OUT ||
+            validate->type == APPEND || validate->type == HEREDOC)
+        {
+            if (!validate->next)
+            {
+                fprintf(stderr, BOLD RED "Syntax error: Missing redirection target after '%s'\n" RESET, 
+                    validate->txt);
+                return (1);
+            }
+            
+            // Check if the next token is another redirection operator
+            if (validate->next->type == REDIR_IN || validate->next->type == REDIR_OUT ||
+                validate->next->type == APPEND || validate->next->type == HEREDOC)
+            {
+                fprintf(stderr, BOLD RED "Syntax error: Unexpected redirection operator '%s' after '%s'\n" RESET, 
+                    validate->next->txt, validate->txt);
+                return (1);
+            }
+        }
+        validate = validate->next;
+    }
+    
+    // Now process the tokens
     current = token;
     cmd_tokens = NULL;
     while (current)
@@ -178,7 +230,6 @@ int	process_cmd_tokens(t_token *token, t_cmd_data *cmd_data)
         if (current->type == REDIR_IN || current->type == REDIR_OUT ||
             current->type == APPEND || current->type == HEREDOC)
         {
-            // fprintf(stderr, YELLOW "Found redirection token: '%s'. Splitting...\n" RESET, current->txt);//debug
             DEBUG_PRINT(YELLOW "Found redirection token: '%s'. Splitting...\n" RESET, current->txt);//debug
             if (split_cmd_arg(&current, cmd_data) != 0)
             {
@@ -188,11 +239,19 @@ int	process_cmd_tokens(t_token *token, t_cmd_data *cmd_data)
             // split_cmd_arg already advances current
             continue;
         }
-        // fprintf(stderr, GREEN "Adding command token: '%s'\n" RESET, current->txt);//debug
-        DEBUG_PRINT(stderr, GREEN "Adding command token: '%s'\n" RESET, current->txt);//debug
+        
+        DEBUG_PRINT(GREEN "Adding command token: '%s'\n" RESET, current->txt);//debug
         add_token(&cmd_tokens, token_cpy(current));
         current = current->next;
     }
+    
+    // Check if we have a command (at least one non-redirection token)
+    if (!cmd_tokens && !has_command)
+    {
+        fprintf(stderr, BOLD RED "Syntax error: Command expected but only redirections found\n" RESET);
+        return (1);
+    }
+    
     cmd_data->tokens = cmd_tokens;
     cmd_data->argv = build_argv_from_tokens(cmd_tokens);
     if (!cmd_data->argv)

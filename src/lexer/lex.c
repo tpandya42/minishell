@@ -233,6 +233,19 @@ t_token *lex_unquoted(char *s)
 
     token->type = WORD;
 
+    // Check for redirection characters within the word
+    if (strchr(token->txt, '>') != NULL || strchr(token->txt, '<') != NULL) {
+        // If the word contains redirection chars, check if they're at positions where
+        // they'd form valid redirection syntax (beginning of word or after space)
+        for (size_t i = 0; token->txt[i]; i++) {
+            if ((token->txt[i] == '>' || token->txt[i] == '<') && i > 0 && token->txt[i-1] != ' ') {
+                fprintf(stderr, BOLD RED "Syntax error: Invalid redirection syntax in '%s'\n" RESET, token->txt);
+                free_token(token);
+                return NULL;
+            }
+        }
+    }
+
     rest = end;
 
     // Check for adjacent token without whitespace

@@ -49,8 +49,19 @@ int	exec_cmd_nopipe(t_program *program, t_node *node)
 	{
 		waitpid(pid, &child_status, 0);
 		// restore_std has been moved to handle_cmd_exec
+		
+		// Handle exit status according to how process terminated
 		if (WIFEXITED(child_status))
+		{
 			return (WEXITSTATUS(child_status));
-		return (1); // Default error if not exited normally check if is handle later
+		}
+		else if (WIFSIGNALED(child_status))
+		{
+			// Add 128 to signal number (bash behavior)
+			// SIGINT (2) becomes 130, SIGQUIT (3) becomes 131, etc.
+			return (128 + WTERMSIG(child_status));
+		}
+		
+		return (1); // Default error if not exited normally
 	}
 }

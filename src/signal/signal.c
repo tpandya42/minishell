@@ -19,15 +19,10 @@ void sigint_heredoc(int signum)
 {
 	(void)signum;
 	g_signal_value = SIGINT;
-
-	struct termios orig_termios, new_termios;
-	tcgetattr(STDIN_FILENO, &orig_termios);
-	new_termios = orig_termios;
-	new_termios.c_lflag &= ~(ICANON | ECHO); // disable canonical and echo
-	tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
-
-	ioctl(STDIN_FILENO, TIOCSTI, "\n");      // inject newline
-	tcsetattr(STDIN_FILENO, TCSANOW, &orig_termios);
+	write(STDOUT_FILENO, "\n", 1);  // Write a newline for visual feedback
+	
+	// Force readline to return immediately
+	rl_done = 1;
 }
 
 void set_signal_handler(int signum, void(*handler)(int))

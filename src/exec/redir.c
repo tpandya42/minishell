@@ -42,30 +42,43 @@ int	redir_out(int fd)
 
 int	setup_redir(t_cmd_data *cmd)
 {
-	if (cmd->fd_in != STDIN_FILENO && cmd->fd_in >= 0
-		&& cmd->fd_in != cmd->pipefd[0])
+	// Input redirection: file/heredoc takes precedence over pipe
+	if (cmd->fd_in != STDIN_FILENO && cmd->fd_in >= 0)
 	{
-		// fprintf(stderr, "[DEBUG] setup_redir: dup2(%d -> STDIN_FILENO)\n", cmd->fd_in);//test
-		DEBUG_PRINT("[DEBUG] setup_redir: dup2(%d -> STDIN_FILENO)\n", cmd->fd_in);//debug
+		DEBUG_PRINT("[DEBUG] setup_redir: dup2(%d -> STDIN_FILENO)\n", cmd->fd_in);
 		fprintf(stderr, "DEBUG: Redirecting stdin from fd=%d\n", cmd->fd_in);
 		if (redir_in(cmd->fd_in) != 0)
 			return (1);
-		// Don't close the input fd yet - keep it for the command to use
-		// close_fd(&cmd->fd_in);
 	}
-	if (cmd->fd_out != STDOUT_FILENO && cmd->fd_out >= 0
-		&& cmd->fd_out != cmd->pipefd[1])
+	// If we have a pipe input and no file redirection
+	else if (cmd->pipefd[0] >= 0)
 	{
-		// fprintf(stderr, "[DEBUG] setup_redir: dup2(%d -> STDOUT_FILENO)\n", cmd->fd_out);//test
-		DEBUG_PRINT("[DEBUG] setup_redir: dup2(%d -> STDOUT_FILENO)\n", cmd->fd_out);//test
+		DEBUG_PRINT("[DEBUG] setup_redir: dup2(pipe[0]=%d -> STDIN_FILENO)\n", cmd->pipefd[0]);
+		fprintf(stderr, "DEBUG: Redirecting stdin from pipe fd=%d\n", cmd->pipefd[0]);
+		if (redir_in(cmd->pipefd[0]) != 0)
+			return (1);
+		close_fd(&cmd->pipefd[0]); // Close after duplication
+	}
+
+	// Output redirection: file takes precedence over pipe
+	if (cmd->fd_out != STDOUT_FILENO && cmd->fd_out >= 0)
+	{
+		DEBUG_PRINT("[DEBUG] setup_redir: dup2(%d -> STDOUT_FILENO)\n", cmd->fd_out);
 		fprintf(stderr, "DEBUG: Redirecting stdout to fd=%d\n", cmd->fd_out);
 		if (redir_out(cmd->fd_out) != 0)
 			return (1);
-		// Don't close the output fd yet - keep it for the command to use
-		// close_fd(&cmd->fd_out);
 	}
-	// fprintf(stderr, GREEN "Redirections set up successfully.\n" RESET); //test
-	DEBUG_PRINT(GREEN "Redirections set up successfully.\n" RESET); //test
+	// If we have a pipe output and no file redirection
+	else if (cmd->pipefd[1] >= 0)
+	{
+		DEBUG_PRINT("[DEBUG] setup_redir: dup2(pipe[1]=%d -> STDOUT_FILENO)\n", cmd->pipefd[1]);
+		fprintf(stderr, "DEBUG: Redirecting stdout to pipe fd=%d\n", cmd->pipefd[1]);
+		if (redir_out(cmd->pipefd[1]) != 0)
+			return (1);
+		close_fd(&cmd->pipefd[1]); // Close after duplication
+	}
+
+	DEBUG_PRINT(GREEN "Redirections set up successfully.\n" RESET);
 	return (0);
 }
 
@@ -92,7 +105,12 @@ int	process_redir(t_cmd_data *cmd, t_program *program)
 		if (r->type == RED_HERE_DOC)
 		{
 			if (heredoc_prepare(r, program->envp_cpy, program->last_exit_status) != 0)
+			{
+				// If heredoc was interrupted by Ctrl+C, set exit status to 130
+				if (g_signal_value == SIGINT)
+					program->last_exit_status = 130;
 				return (1);
+			}
             // only dup later in child
             update_redir_fd(r->fd, &cmd->fd_in);
         }

@@ -2,6 +2,7 @@
 #define SIGNALL_H	
 
 #include "minishell.h"
+#include <readline/readline.h>
 
 extern sig_atomic_t g_signal_value;
 void	sigint_prompt(int signum);
