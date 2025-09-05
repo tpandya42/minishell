@@ -60,8 +60,8 @@ static void	process_cmdline(t_program *program, char *line)
 		fprintf(stderr, RED "Parsing failed\n" RESET);
 		return ;
 	}
-	DEBUG_PRINT(stderr, BOLD MAGENTA "AST built. stating pre-execution \n" RESET);//TEST
-	DEBUG_PRINT_AST(root);//test
+	// DEBUG removed//TEST
+	// DEBUG removed//test
 	pre_execution(program, root);
 	program->last_exit_status = execution(program, root, false);
 	free_ast_tokens(program);
@@ -90,6 +90,6 @@ int	main(int argc, char **argv, char **envp)
 	}
 	cleanup_program(&program);
 	// fprintf(stderr, MAGENTA BOLD "last program status: %d\n" RESET, program.last_exit_status);//new TEST
-	DEBUG_PRINT(MAGENTA BOLD "last program status: %d\n" RESET, program.last_exit_status);//TEST
+	// DEBUG removed//TEST
 	return (program.last_exit_status);
 }

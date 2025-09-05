@@ -25,7 +25,7 @@ void print_ast(t_node *node, int level)
     if (node->type == COMMAND)
     {
         // fprintf(stderr, "[DEBUG] COMMAND: ");
-        DEBUG_PRINT("[DEBUG] COMMAND: ");
+        // DEBUG removed
         if (node->u_data.cmd.tokens)
             print_tokens_debug(node->u_data.cmd.tokens);
         fprintf(stderr, "\n");
@@ -33,7 +33,7 @@ void print_ast(t_node *node, int level)
     else if (node->type == OPERATOR)
     {
         // fprintf(stderr, "[DEBUG] OPERATOR: ");
-        DEBUG_PRINT("[DEBUG] OPERATOR: ");
+        // DEBUG removed
         switch (node->u_data.op.type)
         {
             case PIPE: fprintf(stderr, "|"); break;

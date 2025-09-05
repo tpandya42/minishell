@@ -20,7 +20,7 @@ void	my_exit(t_program *program, t_node *node)
 {
 	(void) node;
 	// fprintf(stderr, MAGENTA BOLD "MY EXIT is about to be run\n" RESET);
-	DEBUG_PRINT(MAGENTA BOLD "MY EXIT is about to be run\n" RESET);
+	// DEBUG removed
 	cleanup_program(program);
 	exit(program->last_exit_status);
 }

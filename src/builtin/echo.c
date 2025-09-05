@@ -33,11 +33,9 @@ int my_echo(t_program *program, t_node *node)
 	int fd_out;
 
 	(void) program;
-	DEBUG_PRINT(MAGENTA BOLD "MY ECHO is about to be run\n" RESET);
 	
-	// Make sure we're using the correct file descriptor
-	fd_out = node->u_data.cmd.fd_out;
-	fprintf(stderr, "DEBUG: Echo using fd_out=%d\n", fd_out);
+	// Use STDOUT_FILENO - redirections / pipes are applied to STDOUT via dup2
+	fd_out = STDOUT_FILENO;
 	
 	i = 1; // starts after command name
 	new_line = 1;
@@ -68,7 +66,7 @@ int my_echo(t_program *program, t_node *node)
 		write(fd_out, "\n", 1);
 	
 	// Make sure the data is written to disk
-	fsync(fd_out);
+	fsync(STDOUT_FILENO);
 	
 	return 0;
 }

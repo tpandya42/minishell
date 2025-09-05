@@ -15,15 +15,15 @@ void sigint_prompt(int signum)
 }
 
 // --- CTRL + C DURING HEREDOC --- //
-void sigint_heredoc(int signum)
-{
-	(void)signum;
-	g_signal_value = SIGINT;
-	write(STDOUT_FILENO, "\n", 1);  // Write a newline for visual feedback
+// void sigint_heredoc(int signum)
+// {
+// 	(void)signum;
+// 	g_signal_value = SIGINT;
+// 	write(STDOUT_FILENO, "\n", 1);  // Write a newline for visual feedback
 	
-	// Force readline to return immediately
-	rl_done = 1;
-}
+// 	// Force readline to return immediately
+// 	rl_done = 1;
+// }
 
 void set_signal_handler(int signum, void(*handler)(int))
 {
@@ -49,7 +49,8 @@ void set_signal_child_process(void)
 
 void set_signal_heredoc(void)
 {
-	set_signal_handler(SIGINT, sigint_heredoc);
+	// set_signal_handler(SIGINT, sigint_heredoc);
+	set_signal_handler(SIGINT, SIG_DFL); //new
 	set_signal_handler(SIGQUIT, SIG_IGN);
 }
 

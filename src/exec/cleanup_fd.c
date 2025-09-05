@@ -22,14 +22,14 @@ void cleanup_fds(t_cmd_data *cmd)
     // Close input file descriptor if open
     if (cmd->fd_in != STDIN_FILENO && cmd->fd_in >= 0)
     {
-        fprintf(stderr, "DEBUG: Closing fd_in=%d\n", cmd->fd_in);
+        // DEBUG removed
         close_fd(&cmd->fd_in);
     }
     
     // Close output file descriptor if open
     if (cmd->fd_out != STDOUT_FILENO && cmd->fd_out >= 0)
     {
-        fprintf(stderr, "DEBUG: Closing fd_out=%d\n", cmd->fd_out);
+        // DEBUG removed
         close_fd(&cmd->fd_out);
     }
 }

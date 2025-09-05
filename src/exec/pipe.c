@@ -16,280 +16,214 @@
 bool	has_redir_out(t_redir *redir);
 bool	has_redir_in(t_redir *redir);
 
-//uses pipdefd[1] to write
-
-pid_t	execute_left(t_program *program, t_node *left_node, int *pipefd)
+static int	count_pipeline_nodes(t_node *node)
 {
-	pid_t	pid;
-
-	pid = fork();
-	fprintf(stderr, "DEBUG: LEFT command fork pid=%d\n", pid);
-	
-	if (pid == -1)
-	{
-		perror("Error: Fork failed for left cmd");
-		return (-1);
-	}
-	else if (pid == 0)
-	{
-		// Child process for left command
-		
-		// Close read end of pipe since we're only writing
-		close(pipefd[0]);
-		
-		// Store pipe write fd in command struct for later use
-		if (!has_redir_out(left_node->u_data.cmd.redir))
-			left_node->u_data.cmd.pipefd[1] = pipefd[1];
-		else
-			close(pipefd[1]); // Close pipe write end if we have explicit redirection
-		
-		// Process redirections first
-		if (left_node->u_data.cmd.redir)
-		{
-			fprintf(stderr, "DEBUG: Processing redirections for left command\n");
-			if (process_redir(&left_node->u_data.cmd, program) != 0)
-				exit(1);
-		}
-		
-		// Setup all redirections (including pipe)
-		setup_redir(&left_node->u_data.cmd);
-		
-		// Execute the command
-		if (is_builtin(left_node->u_data.cmd.argv[0]))
-		{
-			int status = execute_builtin(program, left_node, true);
-			exit(status);
-		}
-		else
-		{
-			exec_cmd_inchild(left_node);
-			// Should not reach here
-			exit(EXIT_FAILURE);
-		}
-	}
-	
-	return (pid);
+	if (!node)
+		return 0;
+	if (node->type == OPERATOR && node->u_data.op.type == PIPE)
+		return count_pipeline_nodes(node->u_data.op.left) + count_pipeline_nodes(node->u_data.op.right);
+	return 1;
 }
 
-pid_t	execute_right(t_program *program, t_node *right_node, int *pipefd)
+static void	collect_pipeline_nodes(t_node *node, t_node **arr, int *idx)
 {
-	pid_t	pid;
-
-	pid = fork();
-	fprintf(stderr, "DEBUG: RIGHT command fork pid=%d\n", pid);
-	
-	if (pid == -1)
+	if (!node)
+		return;
+	if (node->type == OPERATOR && node->u_data.op.type == PIPE)
 	{
-		perror("Error: Fork failed for right cmd");
-		return (-1);
+		collect_pipeline_nodes(node->u_data.op.left, arr, idx);
+		collect_pipeline_nodes(node->u_data.op.right, arr, idx);
+		return;
 	}
-	else if (pid == 0)
-	{
-		// Child process for right command
-		
-		// Close write end of pipe since we're only reading
-		close(pipefd[1]);
-		
-		// Store pipe read fd in command struct for later use
-		if (!has_redir_in(right_node->u_data.cmd.redir))
-			right_node->u_data.cmd.pipefd[0] = pipefd[0];
-		else
-			close(pipefd[0]); // Close pipe read end if we have explicit redirection
-		
-		// Process redirections first
-		if (right_node->u_data.cmd.redir)
-		{
-			fprintf(stderr, "DEBUG: Processing redirections for right command\n");
-			if (process_redir(&right_node->u_data.cmd, program) != 0)
-				exit(1);
-		}
-		
-		// Setup all redirections (including pipe)
-		setup_redir(&right_node->u_data.cmd);
-		
-		// Execute the command
-		if (is_builtin(right_node->u_data.cmd.argv[0]))
-		{
-			int status = execute_builtin(program, right_node, true);
-			exit(status);
-		}
-		else
-		{
-			exec_cmd_inchild(right_node);
-			// Should not reach here
-			exit(EXIT_FAILURE);
-		}
-	}
-	
-	return (pid);
+	arr[(*idx)++] = node;
 }
 
-int	close_all_pipefd(int *pipefd_in, int *pipefd_out)
-{
-	close_fd(pipefd_in);
-	close_fd(pipefd_out);
-	return (1);
-}
-
-bool	has_redir_out(t_redir *redir)//new
+bool	has_redir_out(t_redir *redir)
 {
 	while (redir)
 	{
 		if (redir->type == RED_OUT || redir->type == RED_APPEND)
-			return (true);
+			return true;
 		redir = redir->next;
 	}
-	return (false);
+	return false;
 }
 
-bool	has_redir_in(t_redir *redir)//new
+bool	has_redir_in(t_redir *redir)
 {
 	while (redir)
 	{
 		if (redir->type == RED_IN || redir->type == RED_HERE_DOC)
-			return (true);
+			return true;
 		redir = redir->next;
 	}
-	return (false);
+	return false;
 }
 
-void	assign_pipefd(t_node *node, int pipefd[2])
-{
-	if (!has_redir_out(node->u_data.op.left->u_data.cmd.redir))
-	{
-		node->u_data.op.left->u_data.cmd.pipefd[1] = pipefd[1];
-		node->u_data.op.left->u_data.cmd.fd_out = STDOUT_FILENO; //let the child decide
-	}
-	else
-		node->u_data.op.left->u_data.cmd.pipefd[1] = -1;
-
-	// Right command: use pipe if there are not redir
-	if (!has_redir_in(node->u_data.op.right->u_data.cmd.redir))
-	{
-		node->u_data.op.right->u_data.cmd.pipefd[0] = pipefd[0];
-		node->u_data.op.right->u_data.cmd.fd_in = STDIN_FILENO; // let the child decide
-	}
-	else
-		node->u_data.op.right->u_data.cmd.pipefd[0] = -1;
-}
-//this consider left and right child
-//in waitpid 0 makes wait child
-//pids[0] is left_pid
-//pids[1] is right pid
 int	execute_pipeline(t_program *program, t_node *node)
 {
-	pid_t	pids[2];
-	int		pipefd[2];
-	int		status;
+	int	n_cmds;
+	t_node	**cmds = NULL;
+	int	(*pipes)[2] = NULL;
+	pid_t	*pids = NULL;
+	int	i;
+	int	status = 0;
 
-	// Create the pipe
-	if (pipe(pipefd) == -1)
+	t_program *prog = program;
+
+	t_node *root = node;
+	t_node *n;
+
+	// Count commands in pipeline
+	t_node *tmp = root;
+	t_node *left;
+	(void)tmp;
+	n_cmds = count_pipeline_nodes(root);
+	if (n_cmds <= 0)
+		return 0;
+
+	// Allocate arrays
+	cmds = malloc(sizeof(t_node *) * n_cmds);
+	if (!cmds)
+		return 1;
+	for (i = 0; i < n_cmds; i++)
+		cmds[i] = NULL;
+
+	i = 0;
+	collect_pipeline_nodes(root, cmds, &i);
+
+	// Create pipes (n_cmds - 1)
+	if (n_cmds > 1)
 	{
-		perror("Error: Pipe failed");
-		return (1);
+		pipes = malloc(sizeof(int[2]) * (n_cmds - 1));
+		if (!pipes)
+		{
+			free(cmds);
+			return 1;
+		}
+		for (i = 0; i < n_cmds - 1; i++)
+		{
+			if (pipe(pipes[i]) == -1)
+			{
+				perror("pipe");
+				// cleanup previously created pipes
+				for (int j = 0; j < i; j++)
+				{
+					close(pipes[j][0]);
+					close(pipes[j][1]);
+				}
+				free(pipes);
+				free(cmds);
+				return 1;
+			}
+		}
 	}
-	
-	fprintf(stderr, "DEBUG: Created pipe: read_fd=%d, write_fd=%d\n", pipefd[0], pipefd[1]);
-	
-	// Check if left side is another pipe
-	if (node->u_data.op.left->type == OPERATOR && node->u_data.op.left->u_data.op.type == PIPE)
+
+	pids = malloc(sizeof(pid_t) * n_cmds);
+	if (!pids)
 	{
-		fprintf(stderr, "DEBUG: Left side is another pipe, recursively executing\n");
-		// Recursively handle left pipeline
-		status = execute_pipeline(program, node->u_data.op.left);
-		if (status != 0)
-		{
-			close(pipefd[0]);
-			close(pipefd[1]);
-			return (status);
-		}
-		pids[0] = 0; // No specific PID to wait for
+		if (pipes)
+			free(pipes);
+		free(cmds);
+		return 1;
 	}
-	else
+
+	// Fork each command
+	for (i = 0; i < n_cmds; i++)
 	{
-		// Execute left command (writes to pipe)
-		pids[0] = execute_left(program, node->u_data.op.left, pipefd);
-		if (pids[0] == -1)
+		pid_t pid = fork();
+		if (pid == -1)
 		{
-			close(pipefd[0]);
-			close(pipefd[1]);
-			return (1);
+			perror("fork");
+			// continue to cleanup
+			pids[i] = -1;
+			continue;
 		}
+
+		if (pid == 0)
+		{
+			// Child
+			t_cmd_data *cmd = &cmds[i]->u_data.cmd;
+
+			// Initialize pipefd fields
+			cmd->pipefd[0] = -1;
+			cmd->pipefd[1] = -1;
+
+			// If has left pipe and no input redir, set pipe read end
+			if (i > 0)
+			{
+				if (!has_redir_in(cmd->redir))
+					cmd->pipefd[0] = pipes[i - 1][0];
+			}
+			// If has right pipe and no output redir, set pipe write end
+			if (i < n_cmds - 1)
+			{
+				if (!has_redir_out(cmd->redir))
+					cmd->pipefd[1] = pipes[i][1];
+			}
+
+			// Close unused pipe fds in child: close all except those assigned
+			if (pipes)
+			{
+				for (int j = 0; j < n_cmds - 1; j++)
+				{
+					if (cmd->pipefd[0] != pipes[j][0])
+						close(pipes[j][0]);
+					if (cmd->pipefd[1] != pipes[j][1])
+						close(pipes[j][1]);
+				}
+			}
+
+			// Process redirections (opens files / heredocs)
+			if (cmd->redir && process_redir(cmd, prog) != 0)
+				exit(1);
+
+			// Setup final fds (dup2 pipe fds or file fds)
+			set_final_fds(cmd);
+
+			// Execute builtin or external
+			if (is_builtin(cmds[i]->u_data.cmd.argv[0]))
+				exit(execute_builtin(prog, cmds[i], true));
+			else
+			{
+				exec_cmd_inchild(cmds[i]);
+				// Should not return
+				exit(EXIT_FAILURE);
+			}
+		}
+
+		// Parent
+		pids[i] = pid;
 	}
-	
-	// Check if right side is another pipe
-	if (node->u_data.op.right->type == OPERATOR && node->u_data.op.right->u_data.op.type == PIPE)
+
+	// Parent closes all pipe fds
+	if (pipes)
 	{
-		fprintf(stderr, "DEBUG: Right side is another pipe, recursively executing\n");
-		// For the right side pipe, we pass the read end of our pipe as stdin
-		// and let it create its own output pipe
-		
-		// First, execute the leftmost command of the right pipeline with our pipe
-		t_node *right_pipeline = node->u_data.op.right;
-		pids[1] = execute_right(program, right_pipeline->u_data.op.left, pipefd);
-		
-		if (pids[1] == -1)
+		for (int j = 0; j < n_cmds - 1; j++)
 		{
-			close(pipefd[0]);
-			close(pipefd[1]);
-			if (pids[0] > 0)
-				waitpid(pids[0], NULL, 0);
-			return (1);
+			close(pipes[j][0]);
+			close(pipes[j][1]);
 		}
-		
-		// Parent closes pipe ends
-		close(pipefd[0]);
-		close(pipefd[1]);
-		
-		// Then recursively handle the rest of the right pipeline
-		status = execute_pipeline(program, right_pipeline);
 	}
-	else
+
+	// Wait for all children and capture last exit status
+	for (i = 0; i < n_cmds; i++)
 	{
-		// Execute right command (reads from pipe)
-		pids[1] = execute_right(program, node->u_data.op.right, pipefd);
-		if (pids[1] == -1)
-		{
-			close(pipefd[0]);
-			close(pipefd[1]);
-			if (pids[0] > 0)
-				waitpid(pids[0], NULL, 0);
-			return (1);
-		}
-		
-		// Parent closes both ends of the pipe
-		close(pipefd[0]);
-		close(pipefd[1]);
+		if (pids[i] <= 0)
+			continue;
+		int st = 0;
+		waitpid(pids[i], &st, 0);
+		if (WIFEXITED(st))
+			status = WEXITSTATUS(st);
+		else if (WIFSIGNALED(st))
+			status = 128 + WTERMSIG(st);
 	}
-	
-	// Wait for processes to complete
-	if (pids[0] > 0)
-	{
-		fprintf(stderr, "DEBUG: Waiting for left command pid=%d\n", pids[0]);
-		waitpid(pids[0], NULL, 0);
-	}
-	
-	if (pids[1] > 0)
-	{
-		fprintf(stderr, "DEBUG: Waiting for right command pid=%d\n", pids[1]);
-		waitpid(pids[1], &status, 0);
-		
-		if (WIFEXITED(status))
-		{
-			status = WEXITSTATUS(status);
-		}
-		else if (WIFSIGNALED(status))
-		{
-			// For signals like Ctrl+C (SIGINT)
-			status = 128 + WTERMSIG(status);
-		}
-		else
-		{
-			status = 1;  // Default error code
-		}
-			
-		fprintf(stderr, "DEBUG: Right process completed with status %d\n", status);
-	}
-	
-	return (status);
+
+	// Cleanup
+	free(pids);
+	if (pipes)
+		free(pipes);
+	free(cmds);
+
+	return status;
 }

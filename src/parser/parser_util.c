@@ -75,7 +75,7 @@ void	error_split_arg(t_token *current)
 int	split_cmd_arg(t_token **current, t_cmd_data *cmd_data)
 {
 	// fprintf(stderr, "\033[1;36m[DEBUG] split_cmd_arg: called on token '%s' type %d\033[0m\n", (*current)->txt, (*current)->type);
-	DEBUG_PRINT("\033[1;36m[DEBUG] split_cmd_arg: called on token '%s' type %d\033[0m\n", (*current)->txt, (*current)->type);//debug
+	// DEBUG removed//debug
 	if (!(*current)->next ||
 		((*current)->next->type != WORD &&
 		 (*current)->next->type != SINGLE_Q &&
@@ -103,7 +103,7 @@ int	split_cmd_arg(t_token **current, t_cmd_data *cmd_data)
 	t_redir *tmp_redir = cmd_data->redir;//make happy norm
 	while (tmp_redir) { redir_count++; tmp_redir = tmp_redir->next; }
 	// fprintf(stderr, "\033[1;36m[DEBUG] split_cmd_arg: cmd_data->redir now has %d redirs\033[0m\n", redir_count);//DEBUG
-	DEBUG_PRINT("\033[1;36m[DEBUG] split_cmd_arg: cmd_data->redir now has %d redirs\033[0m\n", redir_count);//DEBUG
+	// DEBUG removed//DEBUG
 	*current = (*current)->next->next;
 	return (0);
 }
@@ -171,13 +171,13 @@ int	process_cmd_tokens(t_token *token, t_cmd_data *cmd_data)
     bool has_command = false;
     
     // Print enum values for debugging
-    DEBUG_PRINT("\033[1;36m[DEBUG] REDIR_IN=%d REDIR_OUT=%d APPEND=%d HEREDOC=%d\033[0m\n", REDIR_IN, REDIR_OUT, APPEND, HEREDOC);//debug
+    // DEBUG removed//debug
     
     // Debug print: list all tokens and their types
-    DEBUG_PRINT("\033[1;36m[DEBUG] process_cmd_tokens: tokens received:\033[0m\n");//debug
+    // DEBUG removed//debug
     current = token;
     while (current) {
-        DEBUG_PRINT("\033[1;36m  token: '%s' type: %d\033[0m\n", current->txt, current->type);//DEBUG
+        // DEBUG removed//DEBUG
         
         // Check if this token is a command (not a redirection operator)
         if (current->type == WORD || current->type == SINGLE_Q || current->type == DOUBLE_Q) {
@@ -230,7 +230,7 @@ int	process_cmd_tokens(t_token *token, t_cmd_data *cmd_data)
         if (current->type == REDIR_IN || current->type == REDIR_OUT ||
             current->type == APPEND || current->type == HEREDOC)
         {
-            DEBUG_PRINT(YELLOW "Found redirection token: '%s'. Splitting...\n" RESET, current->txt);//debug
+            // DEBUG removed//debug
             if (split_cmd_arg(&current, cmd_data) != 0)
             {
                 free_token(cmd_tokens);
@@ -240,7 +240,7 @@ int	process_cmd_tokens(t_token *token, t_cmd_data *cmd_data)
             continue;
         }
         
-        DEBUG_PRINT(GREEN "Adding command token: '%s'\n" RESET, current->txt);//debug
+        // DEBUG removed//debug
         add_token(&cmd_tokens, token_cpy(current));
         current = current->next;
     }

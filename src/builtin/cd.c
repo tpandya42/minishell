@@ -35,7 +35,12 @@ static int	get_old_pwd(char **old_pwd, char *dest_path)
 {
 	*old_pwd = getcwd(NULL, 0);
 	if (!*old_pwd)
-		return (handle_cwd_error(dest_path));
+	{
+		/* getcwd failed (for example, current dir removed). Print a warning
+		 * but do not abort: we still attempt to chdir to the destination. */
+		fprintf(stderr, RED BOLD "cd: getcwd error to get path\n" RESET);
+		*old_pwd = NULL;
+	}
 	return (0);
 }
 
@@ -72,7 +77,7 @@ int	my_cd(t_program *program, t_node *node)
 
 	print_path = false;
 	// fprintf(stderr, MAGENTA BOLD "MY CD is about to be run\n" RESET);
-	DEBUG_PRINT(MAGENTA BOLD "MY CD is about to be run\n" RESET);//DEBUG
+	// DEBUG removed//DEBUG
 	if (node->u_data.cmd.argv[1] 
 		&& ft_strcmp(node->u_data.cmd.argv[1], "-") == 0)
 		print_path = true;

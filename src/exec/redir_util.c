@@ -94,25 +94,11 @@ int	open_redir_filename(t_redir *redir)
 	else
 		return (1); // Invalid redirection type
 	
-	fprintf(stderr, "DEBUG: Opening file '%s' for redirection type %d\n", redir->target, redir->type);
-	
 	// Check if the file exists for input redirection
 	if (redir->type == RED_IN && access(redir->target, F_OK) != 0) {
 		fprintf(stderr, "Error: No such file or directory: %s\n", redir->target);
 		return (1);
 	}
-	
-	// For output files, check directory permissions - commented out to avoid double free
-	// if ((redir->type == RED_OUT || redir->type == RED_APPEND)) {
-	//     dir_path = ft_strdup(redir->target);
-	//     if (dir_path && access(dirname(dir_path), W_OK) != 0) {
-	//         fprintf(stderr, "Error: Permission denied for directory containing: %s\n", redir->target);
-	//         free(dir_path);
-	//         return (1);
-	//     }
-	//     if (dir_path)
-	//         free(dir_path);
-	// }
 	
 	redir->fd = open(redir->target, open_flags, 0644);
 	if (redir->fd < 0)
@@ -121,7 +107,6 @@ int	open_redir_filename(t_redir *redir)
 		return (1);
 	}
 	
-	fprintf(stderr, "DEBUG: Successfully opened file '%s' with fd=%d\n", redir->target, redir->fd);
 	return (0);
 }
 

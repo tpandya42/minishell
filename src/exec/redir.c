@@ -45,16 +45,16 @@ int	setup_redir(t_cmd_data *cmd)
 	// Input redirection: file/heredoc takes precedence over pipe
 	if (cmd->fd_in != STDIN_FILENO && cmd->fd_in >= 0)
 	{
-		DEBUG_PRINT("[DEBUG] setup_redir: dup2(%d -> STDIN_FILENO)\n", cmd->fd_in);
-		fprintf(stderr, "DEBUG: Redirecting stdin from fd=%d\n", cmd->fd_in);
+		// DEBUG removed
+		// DEBUG removed
 		if (redir_in(cmd->fd_in) != 0)
 			return (1);
 	}
 	// If we have a pipe input and no file redirection
 	else if (cmd->pipefd[0] >= 0)
 	{
-		DEBUG_PRINT("[DEBUG] setup_redir: dup2(pipe[0]=%d -> STDIN_FILENO)\n", cmd->pipefd[0]);
-		fprintf(stderr, "DEBUG: Redirecting stdin from pipe fd=%d\n", cmd->pipefd[0]);
+		// DEBUG removed
+		// DEBUG removed
 		if (redir_in(cmd->pipefd[0]) != 0)
 			return (1);
 		close_fd(&cmd->pipefd[0]); // Close after duplication
@@ -63,22 +63,22 @@ int	setup_redir(t_cmd_data *cmd)
 	// Output redirection: file takes precedence over pipe
 	if (cmd->fd_out != STDOUT_FILENO && cmd->fd_out >= 0)
 	{
-		DEBUG_PRINT("[DEBUG] setup_redir: dup2(%d -> STDOUT_FILENO)\n", cmd->fd_out);
-		fprintf(stderr, "DEBUG: Redirecting stdout to fd=%d\n", cmd->fd_out);
+		// DEBUG removed
+		// DEBUG removed
 		if (redir_out(cmd->fd_out) != 0)
 			return (1);
 	}
 	// If we have a pipe output and no file redirection
 	else if (cmd->pipefd[1] >= 0)
 	{
-		DEBUG_PRINT("[DEBUG] setup_redir: dup2(pipe[1]=%d -> STDOUT_FILENO)\n", cmd->pipefd[1]);
-		fprintf(stderr, "DEBUG: Redirecting stdout to pipe fd=%d\n", cmd->pipefd[1]);
+		// DEBUG removed
+		// DEBUG removed
 		if (redir_out(cmd->pipefd[1]) != 0)
 			return (1);
 		close_fd(&cmd->pipefd[1]); // Close after duplication
 	}
 
-	DEBUG_PRINT(GREEN "Redirections set up successfully.\n" RESET);
+	// DEBUG removed
 	return (0);
 }
 
@@ -117,11 +117,11 @@ int	process_redir(t_cmd_data *cmd, t_program *program)
         else
         {
             // fprintf(stderr, BLUE "Attempting to open file: %s\n" RESET, r->target);//test
-            DEBUG_PRINT(BLUE "Attempting to open file: %s\n" RESET, r->target);//test
+            // DEBUG removed//test
             if (open_redir_filename(r) != 0)
                 return 1;
             // fprintf(stderr, GREEN "Successfully opened fd %d for %s\n" RESET, r->fd, r->target);//debug
-            DEBUG_PRINT(GREEN "Successfully opened fd %d for %s\n" RESET, r->fd, r->target);//debug
+            // DEBUG removed//debug
             if (r->type == RED_IN)
                 update_redir_fd(r->fd, &cmd->fd_in);
             else
