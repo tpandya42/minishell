@@ -14,8 +14,8 @@
 
 static int	get_dest_path(t_program *program, t_node *node, char **dest_path)
 {
-	if (!node->u_data.cmd.argv[1] 
-		|| ft_strcmp(node->u_data.cmd.argv[1], "~") == 0)
+	if (!node->u_data.cmd.argv[1] || ft_strcmp(node->u_data.cmd.argv[1],
+			"~") == 0)
 		return (handle_env_path(program, "HOME", dest_path));
 	else if (ft_strcmp(node->u_data.cmd.argv[1], "-") == 0)
 		return (handle_env_path(program, "OLDPWD", dest_path));
@@ -35,7 +35,10 @@ static int	get_old_pwd(char **old_pwd, char *dest_path)
 {
 	*old_pwd = getcwd(NULL, 0);
 	if (!*old_pwd)
-		return (handle_cwd_error(dest_path));
+	{
+		fprintf(stderr, RED BOLD "cd: getcwd error to get path\n" RESET);
+		*old_pwd = NULL;
+	}
 	return (0);
 }
 
@@ -49,8 +52,8 @@ static int	change_dir(char *dest_path)
 	return (0);
 }
 
-static int	update_final_paths(t_program *program,
-	char *old_pwd, char *dest_path)
+static int	update_final_paths(t_program *program, char *old_pwd,
+		char *dest_path)
 {
 	char	*new_cwd;
 
@@ -71,10 +74,8 @@ int	my_cd(t_program *program, t_node *node)
 	bool	print_path;
 
 	print_path = false;
-	// fprintf(stderr, MAGENTA BOLD "MY CD is about to be run\n" RESET);
-	DEBUG_PRINT(MAGENTA BOLD "MY CD is about to be run\n" RESET);//DEBUG
-	if (node->u_data.cmd.argv[1] 
-		&& ft_strcmp(node->u_data.cmd.argv[1], "-") == 0)
+	if (node->u_data.cmd.argv[1] && ft_strcmp(node->u_data.cmd.argv[1],
+			"-") == 0)
 		print_path = true;
 	if (get_dest_path(program, node, &dest_path) != 0)
 		return (1);

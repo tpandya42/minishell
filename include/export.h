@@ -19,6 +19,10 @@ void sort_envp(char **envp);
 void print_decl_line(char *entry);
 int export_print_all(char **envp);
 int	my_export(t_program *program, t_node *node);
-
+int	env_replace(char ***penvp, int idx, char *kv);
+int	env_extend(char ***penvp, char *kv);
+int	env_update_append(char ***penvp, int idx, const char *key, const char *suffix);
+int	parse_append(const char *arg, int i, char **key_out, char **val_out);
+int	parse_set(const char *arg, int i, char **key_out, char **val_out);
 #endif
 

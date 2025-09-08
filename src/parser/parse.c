@@ -98,7 +98,7 @@ t_node *parse(t_token *token_list)
 {
     if (!token_list)
     {//debug
-        DEBUG_PRINT("[DEBUG] parse: token_list is NULL\n");//debug
+        // DEBUG removed//debug
         return NULL;
     }//debug
 

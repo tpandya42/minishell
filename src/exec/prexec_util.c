@@ -12,32 +12,6 @@
 
 #include "minishell.h"
 
-int	ft_count_words(const char *str)
-{
-	int	count;
-	int	in_word;
-
-	count = 0;
-	in_word = 0;
-	if (!str)
-		return (0);
-	while (*str)
-	{
-		if (*str != ' ' && *str != '\t')
-		{
-			if (!in_word)
-			{
-				count++;
-				in_word = 1;
-			}
-		}
-		else
-			in_word = 0;
-		str++;
-	}
-	return (count);
-}
-
 char	*remove_quotes(const char *str)
 {
 	char	*res;
@@ -48,7 +22,7 @@ char	*remove_quotes(const char *str)
 	j = 0;
 	if (!str)
 		return (NULL);
-	res = malloc(ft_strlen(str) + 1);//check where to free
+	res = malloc(ft_strlen(str) + 1);
 	if (!res)
 		return (NULL);
 	while (str[i])
@@ -97,18 +71,17 @@ int	clean_redir_target(t_redir *redir, char **envp_cpy, int last_exit)
 	char	*clean;
 
 	if (!redir || !redir->target)
-		return (1);//invalid target check if smt to free
+		return (1);
 	expand = exp_redir(redir, envp_cpy, last_exit);
 	if (!expand)
 		return (1);
 	clean = clean_target(redir, &expand);
-	free (expand);
+	free(expand);
 	if (!clean)
 		return (1);
 	if (ft_count_words(clean) > 1)
 	{
-		fprintf(stderr, BOLD RED "ambiguous redirect: '%s'\n" RESET,
-			clean);
+		fprintf(stderr, BOLD RED "ambiguous redirect: '%s'\n" RESET, clean);
 		free(clean);
 		return (1);
 	}
@@ -117,25 +90,24 @@ int	clean_redir_target(t_redir *redir, char **envp_cpy, int last_exit)
 	return (0);
 }
 
-void apply_redir(t_program *program, t_node *node)
+void	apply_redir(t_program *program, t_node *node)
 {
-    t_redir *redir = node->u_data.cmd.redir;
+	t_redir	*redir;
 
-    while (redir)
-    {
-        if (redir->type == RED_HERE_DOC)
-        {
-            /* ensure proper delimiter + hd_expand flag */
-            heredoc_normalize_delimiter(redir);
-        }
-        else
-        {
-            if (clean_redir_target(redir, program->envp_cpy, program->last_exit_status) != 0)
-            {
-                cleanup_program(program);
-                exit(EXIT_FAILURE);
-            }
-        }
-        redir = redir->next;
-    }
+	redir = node->u_data.cmd.redir;
+	while (redir)
+	{
+		if (redir->type == RED_HERE_DOC)
+			heredoc_normalize_delimiter(redir);
+		else
+		{
+			if (clean_redir_target(redir, program->envp_cpy,
+					program->last_exit_status) != 0)
+			{
+				cleanup_program(program);
+				exit(EXIT_FAILURE);
+			}
+		}
+		redir = redir->next;
+	}
 }

@@ -56,7 +56,6 @@ static void	add_env_var(t_program *program, const char *key, const char *value)
 	new_envp[count] = create_env_entry(key, value);
 	if (!new_envp[count])
 	{
-		// free(new_envp);
 		free_array(new_envp);
 		return ;
 	}

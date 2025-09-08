@@ -10,26 +10,18 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
 #include "cleanup_fd.h"
+#include "minishell.h"
 
-// Close any open file descriptors in the command
-void cleanup_fds(t_cmd_data *cmd)
+void	cleanup_fds(t_cmd_data *cmd)
 {
-    // Flush stdout before closing
-    fflush(stdout);
-    
-    // Close input file descriptor if open
-    if (cmd->fd_in != STDIN_FILENO && cmd->fd_in >= 0)
-    {
-        fprintf(stderr, "DEBUG: Closing fd_in=%d\n", cmd->fd_in);
-        close_fd(&cmd->fd_in);
-    }
-    
-    // Close output file descriptor if open
-    if (cmd->fd_out != STDOUT_FILENO && cmd->fd_out >= 0)
-    {
-        fprintf(stderr, "DEBUG: Closing fd_out=%d\n", cmd->fd_out);
-        close_fd(&cmd->fd_out);
-    }
+	fflush(stdout);
+	if (cmd->fd_in != STDIN_FILENO && cmd->fd_in >= 0)
+	{
+		close_fd(&cmd->fd_in);
+	}
+	if (cmd->fd_out != STDOUT_FILENO && cmd->fd_out >= 0)
+	{
+		close_fd(&cmd->fd_out);
+	}
 }

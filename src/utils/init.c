@@ -38,7 +38,7 @@ static int	init_fd_origin(const char *err_msg, int orig_fd)
 	if (new_fd == -1)
 		perror(err_msg);
 	else//DEBUG
-		DEBUG_PRINT(CYAN "[DEBUG_FD] init_fd_origin dup(%d) -> %d\n" RESET, orig_fd, new_fd);//new DEBUG
+		// DEBUG removed//new DEBUG
 	return (new_fd);
 }
 
@@ -66,4 +66,6 @@ void	init_program(t_program *program, char **envp)
 	if (!program->envp_cpy || program->fd_in_orig == -1 
 		|| program->fd_out_orig == -1)
 		handle_init_error(program);
+	if (tcgetattr(STDIN_FILENO, &program->orig_termios) == -1)//this saves the original terminal config
+		perror("tcgetattr");//new heredoc signals
 }

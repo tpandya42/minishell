@@ -66,6 +66,12 @@ void	free_node(t_node *node)
 	else if (node->type == COMMAND)
 	{
 		cleanup_cmd_node(node);
+		// Free any copied tokens created during process_cmd_tokens
+		if (node->u_data.cmd.tokens)
+		{
+			free_token(node->u_data.cmd.tokens);
+			node->u_data.cmd.tokens = NULL;
+		}
 		if (node->u_data.cmd.argv)
 			free_cmd_arg(node);
 		if (node->u_data.cmd.redir)
@@ -102,12 +108,12 @@ int	cleanup_cmd_node(t_node *node)
 	if (cmd->fd_in != STDIN_FILENO)
 	{//debug
 		close_fd(&node->u_data.cmd.fd_in);
-		DEBUG_PRINT(CYAN "[DEBUG_FD] cleanup node- Closed cmd.fd_in -> %d\n", tmp_fd_in);//debug
+		// DEBUG removed//debug
 	}//debug
 	if (cmd->fd_out != STDOUT_FILENO)
 	{//debug
 		close_fd(&node->u_data.cmd.fd_out);
-		DEBUG_PRINT(CYAN "[DEBUG_FD] cleaup node - Closed cmd.fd_out -> %d\n", tmp_fd_out);//debug
+		// DEBUG removed//debug
 	}//debug
 	return (0);
 }
@@ -143,7 +149,7 @@ void	free_ast_tokens(t_program *program)
 		program->root = NULL;
 	}
 	// fprintf(stderr, BOLD MAGENTA "Command processed and cleaned up\n" RESET); //TEST
-	DEBUG_PRINT(BOLD MAGENTA "Command processed and cleaned up\n" RESET); //TEST
+	// DEBUG removed //TEST
 }
 
 //To centralized cleanup at the end of the program
@@ -169,7 +175,7 @@ void cleanup_program(t_program *program)
 
     if (program->line)
     {
-        free(program->line);
+       // free(program->line); --- for double free coming from readline
         program->line = NULL;
     }
 
@@ -181,12 +187,12 @@ void cleanup_program(t_program *program)
 	if (program->fd_in_orig != -1)
 	{//DEBUG
 		close_fd(&program->fd_in_orig);
-		DEBUG_PRINT(CYAN "[DEBUG_FD] Closed fd_in_orig in program-> %d\n" RESET, program->fd_in_orig);//DEBUG
+		// DEBUG removed//DEBUG
 	}//DEBUG
 	if (program->fd_out_orig != -1)//new
 	{//DEBUG
 		close_fd(&program->fd_out_orig);//new
-		DEBUG_PRINT(CYAN "[DEBUG_FD] Closed fd_out_orig in program-> %d\n" RESET, program->fd_out_orig);//DEBUG
+		// DEBUG removed//DEBUG
 	}//DEBUG
 }
 

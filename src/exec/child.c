@@ -10,36 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #include "minishell.h"
 
-/**
-*   @brief sets up I/O redi and executes cmd
-*
-*   1. Call set-up redirections
-*   2. Call exec_external_cmd
-*   3. Handles if execution fails
-*   4. @return exit
-*
-*   - use: only within forked childs
-*
-*   @note v0: execute single external cmd: no pipes no builtins
-*/
 void	child_process(t_program *program, t_node *node)
 {
-	t_cmd_data		*cmd;
-	int				status;
+	t_cmd_data	*cmd;
+	int			status;
 
 	cmd = &node->u_data.cmd;
-	
-	// Debug output to track redirections
-	DEBUG_PRINT("\033[1;36m[DEBUG] child_process: fd_in=%d, fd_out=%d\033[0m\n", 
-		cmd->fd_in, cmd->fd_out);
-	
-	// Setup redirections here (already processed in handle_cmd_exec)
 	if (setup_redir(cmd) != 0)
 		exit(EXIT_FAILURE);
-	
 	if (is_builtin(cmd->argv[0]))
 	{
 		status = execute_builtin(program, node, true);
@@ -47,9 +27,8 @@ void	child_process(t_program *program, t_node *node)
 	}
 	else
 	{
-		exec_cmd_inchild(node);//this was to execute only single external cmd
-		perror (BOLD RED "Exec/Builtin failed" RESET);
-		// cleanup_fd(node, node->type);// Only cleanup FDs opened by this child. CHECK IF W OTHERS
+		exec_cmd_inchild(node);
+		perror(BOLD RED "Exec/Builtin failed" RESET);
 		exit(EXIT_FAILURE);
 	}
 }

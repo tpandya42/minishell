@@ -23,9 +23,6 @@ int	wait_children(pid_t left_pid, pid_t right_pid, int *right_status)
 	return (1);
 }
 
-//fork before execve
-//to execute external cmd without pipes
-//parent actions
 int	exec_cmd_nopipe(t_program *program, t_node *node)
 {
 	pid_t	pid;
@@ -37,20 +34,18 @@ int	exec_cmd_nopipe(t_program *program, t_node *node)
 		perror("Fork failedcmd no pipe");
 		return (1);
 	}
-	else if (pid == 0)//child
+	else if (pid == 0)
 	{
-		//CHECK FD TO CLOSE
-		// if (process_redir(&node->u_data.cmd, program) != 0)//new
-		// 	exit(EXIT_FAILURE);//new
 		child_process(program, node);
 		exit(EXIT_FAILURE);
 	}
 	else
 	{
 		waitpid(pid, &child_status, 0);
-		// restore_std has been moved to handle_cmd_exec
 		if (WIFEXITED(child_status))
 			return (WEXITSTATUS(child_status));
-		return (1); // Default error if not exited normally check if is handle later
+		else if (WIFSIGNALED(child_status))
+			return (128 + WTERMSIG(child_status));
+		return (1); 
 	}
 }

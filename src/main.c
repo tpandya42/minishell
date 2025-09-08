@@ -6,7 +6,7 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/23 08:42:03 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/29 13:00:25 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/09/06 11:41:08 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,6 @@ static void	process_cmdline(t_program *program, char *line)
 		fprintf(stderr, RED "Parsing failed\n" RESET);
 		return ;
 	}
-	DEBUG_PRINT(stderr, BOLD MAGENTA "AST built. stating pre-execution \n" RESET);//TEST
-	DEBUG_PRINT_AST(root);//test
 	pre_execution(program, root);
 	program->last_exit_status = execution(program, root, false);
 	free_ast_tokens(program);
@@ -72,16 +70,15 @@ int	main(int argc, char **argv, char **envp)
 	char		*prompt;
 	t_program	program;
 
-	(void) argc;//check if needed
-	(void) argv;//check if needed
-
+	(void)argc;
+	(void)argv;
 	init_program(&program, envp);
 	prompt = BOLD GREEN "🐶🥕 Milanshell >" RESET;
-	set_signal_prompt();
+	set_signal_prompt(0);
 	while (1)
 	{
 		program.line = readline(prompt);
-		if (!program.line && isatty(STDIN_FILENO)) //if issaty returns 0 is in an fd
+		if (!program.line && isatty(STDIN_FILENO))
 		{
 			printf(BLUE "exit\n" RESET);
 			break ;
@@ -89,7 +86,5 @@ int	main(int argc, char **argv, char **envp)
 		process_cmdline(&program, program.line);
 	}
 	cleanup_program(&program);
-	// fprintf(stderr, MAGENTA BOLD "last program status: %d\n" RESET, program.last_exit_status);//new TEST
-	DEBUG_PRINT(MAGENTA BOLD "last program status: %d\n" RESET, program.last_exit_status);//TEST
 	return (program.last_exit_status);
 }

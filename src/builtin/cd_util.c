@@ -21,8 +21,6 @@ static void	free_old_dest(char *old_pwd, char *dest_path)
 int	handle_cwd_error(char *dest_path)
 {
 	fprintf(stderr, RED BOLD "cd: getcwd error to get path\n" RESET);
-	if (dest_path)
-		free(dest_path);
 	return (1);
 }
 
