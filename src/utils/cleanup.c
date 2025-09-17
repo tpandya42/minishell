@@ -6,127 +6,11 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/06 12:20:44 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/29 13:26:52 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/09/16 07:36:55 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-// --- FORWARD DECLARATIONS --- //
-int	cleanup_cmd_node(t_node *node);
-int	cleanup_operator_fd(t_node *node);
-
-
-void	free_token(t_token *token)
-{
-	if (token->next)
-		free_token(token->next);
-	free(token->txt);
-	free(token);
-}
-
-void	free_redirs(t_redir *redir)
-{
-	t_redir	*tmp;
-
-	while (redir)
-	{
-		tmp = redir->next;
-		free(redir->target); // strdup en el lexer
-		free(redir);
-		redir = tmp;
-	}
-}
-
-void	free_cmd_arg(t_node *node)
-{
-	int	i;
-
-	i = 0;
-	while (node->u_data.cmd.argv[i])
-	{
-		free(node->u_data.cmd.argv[i]);
-		i++;
-	}
-	free(node->u_data.cmd.argv);
-	node->u_data.cmd.argv = NULL;
-}
-
-void	free_node(t_node *node)
-{
-	int	i;
-
-	if (!node)
-		return ;
-	if (node->type == OPERATOR)
-	{
-		free_node(node->u_data.op.left);
-		free_node(node->u_data.op.right);
-	}
-	else if (node->type == COMMAND)
-	{
-		cleanup_cmd_node(node);
-		if (node->u_data.cmd.argv)
-			free_cmd_arg(node);
-		if (node->u_data.cmd.redir)
-		{
-			free_redirs(node->u_data.cmd.redir);
-			node->u_data.cmd.redir = NULL;
-		}
-	}
-	free (node);
-}
-
-int	cleanup_fd(t_node *node, t_nodetype type)
-{
-	if (!node)
-		return (-1);
-	if (type == COMMAND)
-		cleanup_cmd_node(node);
-	else if (type == OPERATOR)
-		cleanup_operator_fd(node);
-	return (0);
-}
-
-int	cleanup_cmd_node(t_node *node)
-{
-	t_cmd_data	*cmd;
-	int	tmp_fd_in;//only for debug
-	int	tmp_fd_out;//only for debug
-
-	tmp_fd_in = node->u_data.cmd.fd_in;//ONLY FOR DEBUG
-	tmp_fd_out = node->u_data.cmd.fd_out;//ONLY FOR DEBUG
-	if (!node || node->type != COMMAND)
-		return (-1);
-	cmd = &node->u_data.cmd;
-	if (cmd->fd_in != STDIN_FILENO)
-	{//debug
-		close_fd(&node->u_data.cmd.fd_in);
-		// DEBUG removed//debug
-	}//debug
-	if (cmd->fd_out != STDOUT_FILENO)
-	{//debug
-		close_fd(&node->u_data.cmd.fd_out);
-		// DEBUG removed//debug
-	}//debug
-	return (0);
-}
-
-int	cleanup_operator_fd(t_node *node)
-{
-	if (!node)
-		return (-1);
-	if (node->type == OPERATOR)
-	{
-		if (node->u_data.op.left)
-			cleanup_operator_fd(node->u_data.op.left);
-		if (node->u_data.op.right)
-			cleanup_operator_fd(node->u_data.op.right);
-	}
-	else if (node->type == COMMAND)
-		cleanup_cmd_node(node);
-	return (0);
-}
 
 //Cleaning after each cmd in cmd line
 //free tmp resources per each cmd like root and token list
@@ -142,51 +26,51 @@ void	free_ast_tokens(t_program *program)
 		free_node(program->root);
 		program->root = NULL;
 	}
-	// fprintf(stderr, BOLD MAGENTA "Command processed and cleaned up\n" RESET); //TEST
-	// DEBUG removed //TEST
+}
+
+void	free_ast(t_program *program)
+{
+	free_node(program->root);
+	program->root = NULL;
+}
+
+void	free_env_cpy(t_program *program)
+{
+	free_array(program->envp_cpy);
+	program->envp_cpy = NULL;
 }
 
 //To centralized cleanup at the end of the program
 //to finish the program
-void cleanup_program(t_program *program)
+//readline does the frees the line
+void	cleanup_program(t_program *program)
 {
-    if (!program)
-        return;
-
-    // Free AST first (this should handle argv and node content)
-    if (program->root)
-    {
-        free_node(program->root);
-        program->root = NULL;
-    }
-
-    // Free tokens only if they weren't freed by AST
-    if (program->token_list)
-    {
-        free_token(program->token_list);
-        program->token_list = NULL;
-    }
-
-    if (program->line)
-    {
-       // free(program->line); --- for double free coming from readline
-        program->line = NULL;
-    }
-
-    if (program->envp_cpy)
-    {
-        free_array(program->envp_cpy);
-        program->envp_cpy = NULL;
-    }
+	if (!program)
+		return ;
+	if (program->root)
+	{
+		free_ast(program);
+		program->root = NULL;
+	}
+	if (program->token_list)
+	{
+		free_token_list(program);
+		program->token_list = NULL;
+	}
+	program->line = NULL;
+	if (program->envp_cpy)
+	{
+		free_env_cpy(program);
+		program->envp_cpy = NULL;
+	}
 	if (program->fd_in_orig != -1)
-	{//DEBUG
 		close_fd(&program->fd_in_orig);
-		// DEBUG removed//DEBUG
-	}//DEBUG
-	if (program->fd_out_orig != -1)//new
-	{//DEBUG
-		close_fd(&program->fd_out_orig);//new
-		// DEBUG removed//DEBUG
-	}//DEBUG
+	if (program->fd_out_orig != -1)
+		close_fd(&program->fd_out_orig);
 }
 
+void	malloc_error(t_program *program)
+{
+	safe_write(STDERR_FILENO, "Error\n", 6);
+	cleanup_program(program); 
+}

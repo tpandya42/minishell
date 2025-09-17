@@ -31,34 +31,33 @@ int	is_builtin(const char *cmd_name)
 	return (BUILTIN_NONE);
 }
 
+static int	dispatch_builtin(t_program *program,
+		t_node *node, t_builtin_type type)
+{
+	if (type == BUILTIN_ECHO)
+		return (my_echo(program, node));
+	else if (type == BUILTIN_ENV)
+		return (my_env(program, node));
+	else if (type == BUILTIN_CD)
+		return (my_cd(program, node));
+	else if (type == BUILTIN_PWD)
+		return (my_pwd(program, node));
+	else if (type == BUILTIN_EXPORT)
+		return (my_export(program, node));
+	else if (type == BUILTIN_UNSET)
+		return (my_unset(program, node));
+	else if (type == BUILTIN_EXIT)
+		my_exit(program, node);
+	return (1);
+}
+
 int	execute_builtin(t_program *program, t_node *node, bool is_pipe_child)
 {
 	t_cmd_data		*cmd;
-	t_builtin_type	e_builtin_type;
-	int				status;
+	t_builtin_type	type;
 
+	(void)is_pipe_child;
 	cmd = &node->u_data.cmd;
-	status = 0;
-
-	e_builtin_type = is_builtin(cmd->argv[0]);
-	if (e_builtin_type == BUILTIN_ECHO)
-		status = my_echo(program, node);
-	else if (e_builtin_type == BUILTIN_ENV)
-		status = my_env(program, node);
-	else if (e_builtin_type == BUILTIN_CD)
-		status = my_cd(program, node);
-	else if (e_builtin_type == BUILTIN_PWD)
-		status = my_pwd(program, node);
-	else if (e_builtin_type == BUILTIN_EXPORT)
-		status = my_export(program, node);
-	else if (e_builtin_type == BUILTIN_UNSET)
-		status = my_unset(program, node);
-	else if (e_builtin_type == BUILTIN_EXIT)
-		my_exit(program, node);
-	else 
-	{
-		fprintf(stderr, BOLD RED "Error: unknown builtin\n" RESET);
-		status = 1;
-	}
-	return (status);
+	type = is_builtin(cmd->argv[0]);
+	return (dispatch_builtin(program, node, type));
 }

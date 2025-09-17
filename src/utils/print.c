@@ -1,52 +1,46 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   print.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/12 07:40:52 by albetanc          #+#    #+#             */
+/*   Updated: 2025/09/12 08:36:09 by albetanc         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
-//TO DEBUG
-// Helper: print token list
-static void print_tokens_debug(t_token *token)
+void	print_warn_ctrl_d(int line_num, const char *delimiter)
 {
-    while (token)
-    {
-        fprintf(stderr, "%s ", token->txt);
-        token = token->next;
-    }
-    fflush(stderr);
+	const char	*msg;
+
+	msg = "warning: here-document at line ";
+	write(STDERR_FILENO, msg, ft_strlen(msg));
+	ft_putnbr_fd_un((unsigned long)line_num, STDERR_FILENO);
+	write(STDERR_FILENO, " delimited by end-of-file (wanted `", 36);
+	write(STDERR_FILENO, delimiter, ft_strlen(delimiter));
+	write(STDERR_FILENO, "')\n", 3);
 }
 
-// Recursive AST printer
-void print_ast(t_node *node, int level)
+void	ft_print_syntax_error(const char *token)
 {
-    if (!node)
-        return;
+	if (token)
+	{
+		write(STDERR_FILENO,
+			"minishell: syntax error near unexpected token `", 47);
+		write(STDERR_FILENO, token, strlen(token));
+		write(STDERR_FILENO, "`\n", 2);
+	}
+	else
+		write(STDERR_FILENO,
+			"minishell: syntax error near unexpected token `newline'\n", 56);
+}
 
-    // Indentation
-    for (int i = 0; i < level; i++)//make norm happy
-        fprintf(stderr,"  ");
-
-    if (node->type == COMMAND)
-    {
-        // fprintf(stderr, "[DEBUG] COMMAND: ");
-        // DEBUG removed
-        if (node->u_data.cmd.tokens)
-            print_tokens_debug(node->u_data.cmd.tokens);
-        fprintf(stderr, "\n");
-    }
-    else if (node->type == OPERATOR)
-    {
-        // fprintf(stderr, "[DEBUG] OPERATOR: ");
-        // DEBUG removed
-        switch (node->u_data.op.type)
-        {
-            case PIPE: fprintf(stderr, "|"); break;
-            case AND: fprintf(stderr, "&&"); break;
-            case OR: fprintf(stderr, "||"); break;
-            case SEMICOLON: fprintf(stderr, ";"); break;
-            default: fprintf(stderr, "UNKNOWN"); break;
-        }
-        fprintf(stderr, "\n");
-
-        // Recurse into children
-        print_ast(node->u_data.op.left, level + 1);
-        print_ast(node->u_data.op.right, level + 1);
-    }
-    fflush(stderr);
+void	ft_print_error(const char *msg)
+{
+	if (!msg)
+		return ;
+	write(STDERR_FILENO, msg, ft_strlen(msg));
 }

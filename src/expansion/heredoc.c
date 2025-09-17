@@ -1,170 +1,114 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   heredoc.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/07 17:29:36 by albetanc          #+#    #+#             */
+/*   Updated: 2025/09/08 08:28:28 by albetanc         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "minishell.h"
 
-
-/* ---- local helpers ----------------------------------------------------- */
-
-int is_quoted(const char *s)
+// Close read end in child
+// Set signal handlers for heredoc
+// Reset signal value
+// Read lines until delimiter or signal
+// if (!line) is EOF detected
+//check delimmiter
+//process line heredoc
+static void	child_heredoc(t_redir *redir, t_program *program, int pipefd[2])
 {
-    if (!s) return 0;
-    size_t len = ft_strlen(s);
-    return (len >= 2 && ((s[0] == '\'' && s[len-1] == '\'') ||
-                         (s[0] == '"'  && s[len-1] == '"')));
+	t_heredoc	hd;
+
+	init_hd(&hd, redir, program, pipefd);
+	close_fd(&hd.pipefd[0]);
+	set_signal_heredoc();
+	g_signal_value = 0;
+	heredoc_normalize_delimiter(redir);
+	hd.current_line = read_heredoc(&hd);
+	if (redir->hd_expand && hd.buf)
+		expand_heredoc(program, &hd.buf);
+	if (hd.buf)
+		write(pipefd[1], hd.buf, ft_strlen(hd.buf));
+	free_hd(&hd);
+	close_fd(&pipefd[1]);
+	exit(0);
 }
 
-char *strip_outer_quotes(const char *s)
+//parent after ctrl c
+static int	clean_ctrl_c_heredoc(t_program *program, int *pipefd)
 {
-    if (!s) return NULL;
-    size_t len = ft_strlen(s);
-    if (len >= 2 && ((s[0] == '\'' && s[len-1] == '\'') ||
-                     (s[0] == '"'  && s[len-1] == '"')))
-        return ft_substr(s, 1, len - 2);
-    return ft_strdup(s);
+	g_signal_value = SIGINT;
+	close_fd(&pipefd[0]);
+	if (program->line)
+	{
+		free(program->line);
+		program->line = NULL;
+	}
+	rl_replace_line("", 0);
+	rl_on_new_line();
+	rl_redisplay(); 
+	return (1);
 }
 
-static int is_delim_line(const char *line, const char *delim)
+static int	other_error_heredoc(int *pipefd)
 {
-    if (!line || !delim) return 0;
-    return (ft_strcmp(line, delim) == 0);
+	close_fd(&pipefd[0]);
+	return (1);
 }
 
-/* ---- public helpers ---------------------------------------------------- */
-
-/* normalize the delimiter: strip quotes and set expand flag */
-void heredoc_normalize_delimiter(t_redir *redir)
+// Close write end in parent
+// Store read end for command
+// Wait for child to finish
+// If child was interrupted by Ctrl+C (status 130)
+//handles other errors
+//restore terminal when success and set signal promopt
+static int	parent_heredoc(t_redir *redir,
+		t_program *program, int pipefd[2], int pid)
 {
-    if (!redir || !redir->target) return;
+	int	status;
 
-    // Use quoted field from redir struct
-    redir->hd_expand = !redir->quoted;
-
-    char *clean = strip_outer_quotes(redir->target);
-    if (clean)
-    {
-        free(redir->target);
-        redir->target = clean;
-    }
+	status = 0;
+	close_fd(&pipefd[1]);
+	redir->fd = pipefd[0];
+	set_signal_prompt(1);
+	waitpid(pid, &status, 0);
+	set_signal_prompt(0);
+	if ((WIFEXITED(status) && WEXITSTATUS(status) == 130)
+		|| (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT))
+		clean_ctrl_c_heredoc(program, &pipefd[0]);
+	if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+		other_error_heredoc(&pipefd[0]);
+	tcsetattr(STDIN_FILENO, TCSANOW, &program->orig_termios);
+	set_signal_prompt(0);
+	return (0);
 }
 
 /* prepare heredoc: create a pipe, read user input until delimiter */
-int heredoc_prepare(t_redir *redir, char **envp, int last_exit)
+// int heredoc_prepare(t_redir *redir, char **envp, int last_exit)
+// Fork a child process for the heredoc
+int	heredoc_prepare(t_redir *redir, t_program *program)
 {
-    int pipefd[2];
-    char *line;
-    pid_t pid;
-    int status;
-    int current_line;//new for warning message
+	int		pipefd[2];
+	pid_t	pid;
 
-    current_line = 1;//new to count lines in here doc for warning message
-    if (!redir || pipe(pipefd) == -1)
-    {
-        perror("heredoc: pipe failed");
-        return 1;
-    }
-    // Fork a child process for the heredoc
-    pid = fork();
-    if (pid < 0)
-    {
-        perror("heredoc: fork failed");
-        close_fd(&pipefd[0]);
-        close_fd(&pipefd[1]);
-        return 1;
-    }
-    
-    if (pid == 0)
-    {
-        // Child process
-        close_fd(&pipefd[0]);   // Close read end in child
-        set_signal_heredoc();   // Set signal handlers for heredoc
-        g_signal_value = 0;     // Reset signal value
-        heredoc_normalize_delimiter(redir);//new position
-        while (1)               // Read lines until delimiter or signal
-        {
-            line = readline("> ");
-            
-            // Check for EOF or signal
-            // if (!line || g_signal_value == SIGINT)
-            if (!line)//changed
-            {
-                fprintf(stderr, "warning: here-document at line %d delimited by end-of-file (wanted `%s')\n",
-                        current_line,
-                        redir->target);  
-                break;//new
-                // if (line)
-                    // free(line);
-                // close(pipefd[1]);
-                
-                // Exit with 130 if interrupted by Ctrl+C, or 0 for EOF
-                // exit(g_signal_value == SIGINT ? 130 : 0);//ternary not allowed
-            }
-            
-            // Check for delimiter
-            if (is_delim_line(line, redir->target))
-            {
-                free(line);
-                break;
-            }
-            
-            // Process the line
-            char *to_write;
-            if (redir->hd_expand)
-            {
-                // DEBUG removed
-                to_write = expand_token_text(line, envp, last_exit);
-            }
-            else
-            {
-                // DEBUG removed
-                to_write = ft_strdup(line);
-            }
-            
-            free(line);
-            
-            if (!to_write)
-            {
-                close_fd(&pipefd[1]);
-                exit(1);
-            }
-            
-            // Write to pipe
-            write(pipefd[1], to_write, ft_strlen(to_write));
-            write(pipefd[1], "\n", 1);  // Preserve newline
-            free(to_write);
-            current_line++;//new for warning message
-        }
-        
-        // Clean up and exit
-        close_fd(&pipefd[1]);
-        exit(0);
-    }
-    
-    // Parent process
-    close_fd(&pipefd[1]);  // Close write end in parent
-    
-    // Store read end for command
-    redir->fd = pipefd[0];
-    
-    // Wait for child to finish
-    waitpid(pid, &status, 0);
-    
-    // If child was interrupted by Ctrl+C (status 130)
-    if (WIFEXITED(status) && WEXITSTATUS(status) == 130)//check if better == SIGINT instead of 130
-    {
-        g_signal_value = SIGINT;
-        close_fd(&pipefd[0]);
-        set_signal_prompt();
-        return 1;
-    }
-    
-    // Handle other errors
-    if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-    {
-        close_fd(&pipefd[0]);
-        set_signal_prompt();
-        return 1;
-    }
-    
-    // Success
-    set_signal_prompt();
-    return 0;
+	if (!redir || pipe(pipefd) == -1)
+	{
+		perror("heredoc: pipe failed");
+		return (1);
+	}
+	pid = fork();
+	if (pid < 0)
+	{
+		perror("heredoc: fork failed");
+		close_fd(&pipefd[0]);
+		close_fd(&pipefd[1]);
+		return (1);
+	}
+	if (pid == 0)
+		child_heredoc(redir, program, pipefd);
+	return (parent_heredoc (redir, program, pipefd, pid));
 }

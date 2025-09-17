@@ -12,26 +12,22 @@
 
 #include "minishell.h"
 
-//return 0 for success
-// int	my_env(char **envp)
 int	my_env(t_program *program, t_node *node)
 {
 	int	i;
 
 	(void)node;
-	// fprintf(stderr, MAGENTA BOLD "MY ENV is about to be run\n" RESET);
-	// DEBUG removed//DEBUG
 	if (!program->envp_cpy)
 	{
-		//fprintf(stderr, BLUE "env: no environment variables found\n");
 		return (1);
 	}
-	   i = 0;
-	   while (program->envp_cpy[i])
-	   {
-		   safe_write(STDOUT_FILENO, program->envp_cpy[i], ft_strlen(program->envp_cpy[i]));
-		   safe_write(STDOUT_FILENO, "\n", 1);
-		   i++;
-	   }
+	i = 0;
+	while (program->envp_cpy[i])
+	{
+		safe_write(STDOUT_FILENO, program->envp_cpy[i],
+			ft_strlen(program->envp_cpy[i]));
+		safe_write(STDOUT_FILENO, "\n", 1);
+		i++;
+	}
 	return (0);
 }

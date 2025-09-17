@@ -12,26 +12,23 @@
 
 #include "minishell.h"
 
-//cwd: current working directory
-//Original pwd: Print the full 
-//filename of the current working directory.
 int	my_pwd(t_program *program, t_node *node)
 {
 	char	*cwd_path;
 
-	(void) node;
-	//fprintf(stderr, MAGENTA BOLD "Executing 'pwd'\n" RESET);//new debug
+	(void)node;
+	(void)program;
 	cwd_path = getcwd(NULL, 0);
-       if (cwd_path)
-       {
-	       ft_putendl_fd(cwd_path, STDOUT_FILENO);
-	       free(cwd_path);
-	       return (0);
-       }
-       else
-       {
-	       ft_putendl_fd("pwd: current directory not found", STDERR_FILENO);
-	       free(cwd_path);
-	       return (1);
-       }
+	if (cwd_path)
+	{
+		ft_putendl_fd(cwd_path, STDOUT_FILENO);
+		free(cwd_path);
+		return (0);
+	}
+	else
+	{
+		ft_putendl_fd("pwd: current directory not found", STDERR_FILENO);
+		free(cwd_path);
+		return (1);
+	}
 }

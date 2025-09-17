@@ -6,21 +6,16 @@
 /*   By: albetanc <albetanc@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 14:04:53 by albetanc          #+#    #+#             */
-/*   Updated: 2025/08/19 16:53:05 by albetanc         ###   ########.fr       */
+/*   Updated: 2025/09/12 08:24:49 by albetanc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static void	free_old_dest(char *old_pwd, char *dest_path)
-{
-	free(old_pwd);
-	free(dest_path);
-}
-
 int	handle_cwd_error(char *dest_path)
 {
-	fprintf(stderr, RED BOLD "cd: getcwd error to get path\n" RESET);
+	(void)dest_path;
+	perror("cd");
 	return (1);
 }
 
@@ -42,6 +37,13 @@ void	update_free_paths(t_program *program,
 		free(dest_path);
 }
 
+void	print_cd_not_set(const char *key)
+{
+	write(STDERR_FILENO, "cd: ", 4);
+	write(STDERR_FILENO, key, ft_strlen(key));
+	write(STDERR_FILENO, " not set\n", 9);
+}
+
 int	handle_env_path(t_program *program, char *key, char **dest_path)
 {
 	char	*tmp_path;
@@ -49,7 +51,7 @@ int	handle_env_path(t_program *program, char *key, char **dest_path)
 	tmp_path = find_env_value(program->envp_cpy, key);
 	if (!tmp_path)
 	{
-		fprintf(stderr, "cd: %s not set\n", key);
+		print_cd_not_set(key);
 		if (*dest_path)
 			free(*dest_path);
 		return (1);
@@ -57,7 +59,7 @@ int	handle_env_path(t_program *program, char *key, char **dest_path)
 	*dest_path = ft_strdup(tmp_path);
 	if (!*dest_path)
 	{
-		fprintf(stderr, RED BOLD "cd: memory error in handl env path\n" RESET);
+		perror("cd");
 		return (1);
 	}
 	return (0);
